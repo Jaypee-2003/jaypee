@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/jaypee/static/css/main.06698440.css",
+    "main.js": "/jaypee/static/js/main.0314501d.js",
+    "index.html": "/jaypee/index.html",
+    "main.06698440.css.map": "/jaypee/static/css/main.06698440.css.map",
+    "main.0314501d.js.map": "/jaypee/static/js/main.0314501d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.06698440.css",
+    "static/js/main.0314501d.js"
+  ]
+}
