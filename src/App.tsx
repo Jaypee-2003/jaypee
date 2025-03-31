@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from './styles/theme';
@@ -11,7 +11,7 @@ import Projects from './pages/Projects';
 
 const AppContainer = styled.div`
   min-height: 100vh;
-  background: ${theme.gradients.primary};
+  background: ${theme.colors.bgPrimary};
   color: ${theme.colors.textPrimary};
 `;
 

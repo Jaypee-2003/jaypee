@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
-import { FaHome, FaUser, FaCode, FaEnvelope } from 'react-icons/fa';
+import { FaHome, FaUser, FaCode, FaEnvelope, FaBars } from 'react-icons/fa';
 import { theme } from '../styles/theme';
 
 const NavContainer = styled.nav`
@@ -45,22 +45,42 @@ const NavLinks = styled.div`
   gap: 2rem;
   align-items: center;
 
-  @media (max-width: 768px) {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: ${theme.colors.bgCard};
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-    border-top: 1px solid ${theme.colors.highlightTransparent};
-    box-shadow: ${theme.shadows.card};
+  a {
+    color: ${theme.colors.textPrimary};
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+
+    &:hover {
+      color: ${theme.colors.accent};
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background: ${theme.colors.accent};
+      transition: width 0.3s ease;
+    }
+
+    &:hover::after {
+      width: 100%;
+    }
+
+    &.active {
+      color: ${theme.colors.accent};
+      &::after {
+        width: 100%;
+      }
+    }
   }
 
-  &.active {
-    display: flex;
+  @media (max-width: 768px) {
+    display: none;
   }
 `;
 
@@ -88,6 +108,27 @@ const NavLink = styled(Link)`
 `;
 
 const MenuButton = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  color: ${theme.colors.textPrimary};
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: ${theme.borderRadius.small};
+  transition: ${theme.transitions.default};
+
+  &:hover {
+    color: ${theme.colors.accent};
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+`;
+
+const MobileMenuButton = styled.button`
   display: none;
   background: none;
   border: none;
@@ -140,6 +181,9 @@ const Navbar: React.FC = () => {
           </NavLink>
         ))}
       </NavLinks>
+      <MobileMenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <FaBars />
+      </MobileMenuButton>
     </NavContainer>
   );
 };
