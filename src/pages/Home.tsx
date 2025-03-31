@@ -1,550 +1,902 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from '@emotion/styled';
-import { motion } from 'framer-motion';
-import { FaGithub, FaLinkedin, FaReact, FaNodeJs, FaDatabase, FaExternalLinkAlt } from 'react-icons/fa';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { FaGithub, FaLinkedin, FaEnvelope, FaTwitter, FaReact, FaNodeJs, FaDatabase, FaLaravel, FaPython, FaJava, FaAws } from 'react-icons/fa';
 import { theme } from '../styles/theme';
+
+interface Project {
+  title: string;
+  description: string;
+  github: string;
+  live: string;
+  tech: string[];
+}
+
+interface SocialLinkProps {
+  href: string;
+  icon: React.ReactNode;
+  target?: string;
+  rel?: string;
+}
 
 const Container = styled.div`
   min-height: 100vh;
-  background: ${theme.gradients.primary};
+  background: ${theme.colors.bgPrimary};
   color: ${theme.colors.textPrimary};
-  padding-top: 70px;
+  position: relative;
+  overflow: hidden;
+  perspective: 1000px;
 `;
 
-const HeroSection = styled.section`
-  min-height: calc(100vh - 70px);
+const AnimatedBackground = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: radial-gradient(circle at center, ${theme.colors.bgSecondary} 0%, ${theme.colors.bgPrimary} 100%);
+  transform-style: preserve-3d;
+`;
+
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+`;
+
+const HeroSection = styled(motion.div)`
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 2rem;
+  align-items: center;
+  min-height: 100vh;
+  padding: 4rem 0;
   text-align: center;
+  transform-style: preserve-3d;
   position: relative;
   overflow: hidden;
 
   &::before {
     content: '';
     position: absolute;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, ${theme.colors.bgGlass} 0%, transparent 70%);
-    animation: rotate 20s linear infinite;
+    inset: 0;
+    background: radial-gradient(circle at center, ${theme.colors.highlightTransparent} 0%, transparent 70%);
+    opacity: 0.1;
+    z-index: -1;
   }
 
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  @media (max-width: 768px) {
+    padding: 3rem 0;
+    min-height: auto;
+  }
+
+  @media (max-width: 505px) {
+    padding: 2rem 0;
+    margin-top: 1rem;
   }
 `;
 
-const ProfileImage = styled(motion.div)`
-  width: 200px;
-  height: 200px;
-  border-radius: ${theme.borderRadius.circle};
-  overflow: hidden;
-  margin: 0 auto 2rem;
-  border: 3px solid ${theme.colors.accent};
+const HeroContent = styled(motion.div)`
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  transform-style: preserve-3d;
   position: relative;
-  box-shadow: ${theme.shadows.glow};
 
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
+  @media (max-width: 768px) {
+    padding: 0 1.5rem;
   }
 
-  &:hover img {
-    transform: scale(1.05);
+  @media (max-width: 505px) {
+    padding: 0 1rem;
   }
 `;
 
-const Title = styled(motion.h1)`
-  font-size: 4.5rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
+const HeroTitle = styled(motion.h1)`
+  font-size: 3.5rem;
+  line-height: 1.2;
   margin-bottom: 1.5rem;
+  color: ${theme.colors.textPrimary};
+  transform: translateZ(30px);
+  position: relative;
+  display: inline-block;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 1024px) {
+    font-size: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 505px) {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+    padding: 0 0.5rem;
+  }
+`;
+
+const HeroSubtitle = styled(motion.h2)`
+  font-size: 1.8rem;
+  color: ${theme.colors.accent};
+  margin-bottom: 1.5rem;
+  transform: translateZ(20px);
+  position: relative;
+  display: inline-block;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   background: ${theme.gradients.neon};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  line-height: 1.2;
-  position: relative;
-  z-index: 1;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 2px;
+    background: ${theme.gradients.neon};
+    border-radius: ${theme.borderRadius.small};
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.6rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 505px) {
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    padding: 0 0.5rem;
+  }
 `;
 
-const Subtitle = styled(motion.h2)`
-  font-size: 2rem;
+const HeroDescription = styled(motion.p)`
+  font-size: 1.1rem;
+  line-height: 1.7;
   color: ${theme.colors.textSecondary};
-  font-family: 'Inter', sans-serif;
+  margin-bottom: 2.5rem;
+  transform: translateZ(10px);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  padding: 1.5rem;
+  background: ${theme.colors.bgGlass};
+  border-radius: ${theme.borderRadius.large};
+  border: 1px solid ${theme.colors.highlightTransparent};
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   font-weight: 400;
-  margin-bottom: 2rem;
-  position: relative;
-  z-index: 1;
+  box-shadow: ${theme.shadows.glow};
+
+  &::before {
+    content: '';
+  position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, ${theme.colors.highlightTransparent}, transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  &:hover::before {
+    transform: translateX(100%);
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+    padding: 1.25rem;
+    max-width: 600px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 1.25rem;
+    margin: 0 1rem 2rem;
+    max-width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.95rem;
+    padding: 1rem;
+    margin: 0 0.5rem 1.5rem;
+  }
 `;
 
-const Description = styled(motion.p)`
-  font-size: 1.3rem;
-  color: ${theme.colors.textMuted};
-  max-width: 600px;
-  margin: 0 auto 3rem;
-  line-height: 1.8;
-  font-family: 'Inter', sans-serif;
+const AnimatedText = styled(motion.span)`
+  display: inline-block;
   position: relative;
-  z-index: 1;
+  color: ${theme.colors.accent};
+  font-weight: 700;
+  margin-left: 0.5rem;
+  background: ${theme.gradients.neon};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  &::after {
+    content: '';
+  position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: ${theme.gradients.neon};
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  @media (max-width: 505px) {
+    margin-left: 0.25rem;
+    font-size: 0.9em;
+  }
 `;
 
-const TechStack = styled(motion.div)`
-  display: flex;
-  gap: 3rem;
+const HeroStats = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
   margin: 3rem 0;
+  transform: translateZ(15px);
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+`;
+
+const StatItem = styled(motion.div)`
+  background: ${theme.colors.bgGlass};
+  padding: 1.5rem;
+  border-radius: ${theme.borderRadius.large};
+  border: 1px solid ${theme.colors.highlightTransparent};
+  backdrop-filter: blur(10px);
+  text-align: center;
+
+  &:hover {
+    transform: translateY(-5px) translateZ(10px);
+    box-shadow: ${theme.shadows.glow};
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+  }
+`;
+
+const StatNumber = styled(motion.div)`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${theme.colors.accent};
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.6rem;
+  }
+`;
+
+const StatLabel = styled(motion.div)`
+  font-size: 0.9rem;
+  color: ${theme.colors.textSecondary};
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+  }
+`;
+
+const TechSection = styled(motion.div)`
+  grid-column: 1 / -1;
+  padding: 6rem 0;
+  transform-style: preserve-3d;
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, ${theme.colors.highlightTransparent} 0%, transparent 70%);
+    opacity: 0.1;
+    z-index: -1;
+  }
+`;
+
+const TechContainer = styled(motion.div)`
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  transform-style: preserve-3d;
+`;
+
+const SectionTitle = styled(motion.h2)`
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  background: ${theme.gradients.neon};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: translateZ(30px);
+  position: relative;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  &::after {
+    content: '';
+  position: absolute;
+    bottom: -0.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+    width: 80px;
+    height: 2px;
+    background: ${theme.gradients.neon};
+    border-radius: ${theme.borderRadius.small};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+`;
+
+const TechGrid = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2.5rem;
+  transform-style: preserve-3d;
+`;
+
+const TechCard = styled(motion.div)`
+  background: ${theme.colors.bgGlass};
+  padding: 2.5rem;
+  border-radius: ${theme.borderRadius.large};
+  text-align: center;
+  transform-style: preserve-3d;
+  border: 1px solid ${theme.colors.highlightTransparent};
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, ${theme.colors.highlightTransparent}, transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  &:hover::before {
+    transform: translateX(100%);
+  }
+`;
+
+const TechIconWrapper = styled(motion.div)`
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  transform-style: preserve-3d;
 `;
 
 const TechIcon = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: ${theme.colors.textMuted};
-  font-size: 2.5rem;
-  transition: ${theme.transitions.default};
-  padding: 1rem;
-  border-radius: ${theme.borderRadius.medium};
+  font-size: 3.5rem;
+  color: ${theme.colors.accent};
+  transform-style: preserve-3d;
+  position: relative;
+  z-index: 1;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    background: ${theme.colors.accent};
+    opacity: 0.1;
+    filter: blur(10px);
+    border-radius: 50%;
+    z-index: -1;
+  }
+`;
+
+const TechName = styled(motion.h3)`
+  font-size: 1.2rem;
+  color: ${theme.colors.textPrimary};
+  margin-bottom: 0.5rem;
+  transform: translateZ(10px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+`;
+
+const TechDescription = styled(motion.p)`
+  font-size: 0.9rem;
+  color: ${theme.colors.textSecondary};
+  line-height: 1.6;
+  transform: translateZ(5px);
+  font-weight: 400;
+`;
+
+const TechLevel = styled(motion.div)`
+  margin-top: 1rem;
+  transform: translateZ(10px);
+`;
+
+const TechLevelBar = styled(motion.div)`
+  height: 4px;
   background: ${theme.colors.bgGlass};
+  border-radius: ${theme.borderRadius.small};
+  overflow: hidden;
+  margin-top: 0.5rem;
+`;
+
+const TechLevelFill = styled(motion.div)`
+  height: 100%;
+  background: ${theme.gradients.neon};
+  border-radius: ${theme.borderRadius.small};
+`;
+
+const ProjectsSection = styled(motion.div)`
+  grid-column: 1 / -1;
+  padding: 4rem 0;
+  transform-style: preserve-3d;
+`;
+
+const ProjectsGrid = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+`;
+
+const ProjectCard = styled(motion.div)`
+  background: ${theme.colors.bgGlass};
+  border-radius: ${theme.borderRadius.large};
+  padding: 2.5rem;
+  transform-style: preserve-3d;
+  border: 1px solid ${theme.colors.highlightTransparent};
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, ${theme.colors.highlightTransparent}, transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  &:hover::before {
+    transform: translateX(100%);
+  }
 
   &:hover {
-    color: ${theme.colors.accent};
-    transform: translateY(-5px);
+    transform: translateY(-10px) translateZ(20px);
     box-shadow: ${theme.shadows.glow};
   }
 `;
 
-const TechLabel = styled.span`
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
+const ProjectTitle = styled(motion.h3)`
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  background: ${theme.gradients.neon};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: translateZ(10px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+`;
+
+const ProjectDescription = styled(motion.p)`
+  color: ${theme.colors.textSecondary};
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  transform: translateZ(5px);
+  font-size: 0.95rem;
+  font-weight: 400;
+`;
+
+const ProjectTech = styled(motion.div)`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  transform: translateZ(10px);
+`;
+
+const TechTag = styled(motion.span)`
+  padding: 0.3rem 0.8rem;
+  background: ${theme.colors.bgGlass};
+  border-radius: ${theme.borderRadius.small};
+  font-size: 0.85rem;
+  color: ${theme.colors.accent};
+  border: 1px solid ${theme.colors.highlightTransparent};
+  backdrop-filter: blur(5px);
+  transform: translateZ(5px);
   font-weight: 500;
+  letter-spacing: 0.02em;
+
+  &:hover {
+    transform: translateY(-2px) translateZ(10px);
+    box-shadow: ${theme.shadows.glow};
+  }
 `;
 
 const SocialLinks = styled(motion.div)`
   display: flex;
-  gap: 2rem;
-  margin-top: 3rem;
-  position: relative;
-  z-index: 1;
-`;
-
-const SocialIcon = styled(motion.a)`
-  color: ${theme.colors.textMuted};
-  font-size: 1.8rem;
-  transition: ${theme.transitions.default};
-  padding: 1rem;
-  border-radius: ${theme.borderRadius.circle};
-  background: ${theme.colors.bgGlass};
-
-  &:hover {
-    color: ${theme.colors.accent};
-    transform: translateY(-3px);
-    box-shadow: ${theme.shadows.glow};
-  }
-`;
-
-const AboutSection = styled.section`
-  padding: 6rem 2rem;
-  background: ${theme.colors.bgSecondary};
-  position: relative;
-`;
-
-const AboutContent = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  transform: translateZ(10px);
+  justify-content: center;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    gap: 0.8rem;
+    margin-top: 1.25rem;
   }
 `;
 
-const AboutText = styled.div`
+const StyledSocialLink = styled(motion.a)`
   color: ${theme.colors.textSecondary};
-  font-size: 1.1rem;
-  line-height: 1.8;
-  font-family: 'Inter', sans-serif;
-
-  p {
-    margin-bottom: 1.5rem;
-  }
-`;
-
-const SkillsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-`;
-
-const SkillItem = styled.div`
-  background: ${theme.colors.bgCard};
-  padding: 1.2rem;
-  border-radius: ${theme.borderRadius.medium};
-  border: 1px solid ${theme.colors.highlightTransparent};
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  color: ${theme.colors.accent};
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  transition: ${theme.transitions.default};
-
-  &:hover {
-    transform: translateY(-3px);
-    border-color: ${theme.colors.accent};
-    box-shadow: ${theme.shadows.glow};
-  }
-
-  svg {
-    font-size: 1.5rem;
-  }
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 2.5rem;
-  background: ${theme.gradients.neon};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-align: center;
-  margin-bottom: 3rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-`;
-
-const ProjectsSection = styled.section`
-  padding: 6rem 2rem;
-  background: ${theme.colors.bgPrimary};
-`;
-
-const ProjectsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const ProjectCard = styled(motion.div)`
-  background: ${theme.colors.bgCard};
-  border-radius: ${theme.borderRadius.medium};
-  overflow: hidden;
-  border: 1px solid ${theme.colors.highlightTransparent};
-  box-shadow: ${theme.shadows.card};
-  transition: ${theme.transitions.default};
-  backdrop-filter: blur(10px);
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${theme.shadows.neonGlow};
-    border-color: ${theme.colors.accent};
-  }
-`;
-
-const ProjectImage = styled.div`
-  position: relative;
-  width: 100%;
-  height: 250px;
-  overflow: hidden;
-  background: ${theme.colors.bgSecondary};
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-    filter: brightness(0.9);
-    transform-origin: center;
-  }
-
-  ${ProjectCard}:hover & img {
-    transform: scale(1.05);
-    filter: brightness(1);
-  }
-`;
-
-const ProjectImageOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(10, 25, 47, 0.2) 0%,
-    rgba(10, 25, 47, 0.8) 100%
-  );
-  opacity: 0;
-  transition: ${theme.transitions.default};
-
-  ${ProjectCard}:hover & {
-    opacity: 1;
-  }
-`;
-
-const ProjectLinks = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(10, 25, 47, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  opacity: 0;
-  transition: ${theme.transitions.default};
-
-  ${ProjectCard}:hover & {
-    opacity: 1;
-  }
-`;
-
-const ProjectLink = styled.a`
-  color: ${theme.colors.textPrimary};
   font-size: 1.5rem;
   padding: 0.5rem;
   border-radius: ${theme.borderRadius.circle};
   background: ${theme.colors.bgGlass};
   transition: ${theme.transitions.default};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
 
-  &:hover {
-    color: ${theme.colors.accent};
-    transform: translateY(-3px);
-    box-shadow: ${theme.shadows.glow};
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+    padding: 0.4rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.1rem;
+    padding: 0.35rem;
   }
 `;
 
-const ProjectContent = styled.div`
-  padding: 1.5rem;
-`;
-
-const ProjectTitle = styled.h3`
-  font-size: 1.5rem;
-  color: ${theme.colors.textPrimary};
-  margin-bottom: 0.5rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-`;
-
-const ProjectDescription = styled.p`
-  color: ${theme.colors.textMuted};
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  font-family: 'Inter', sans-serif;
-`;
-
-const ProjectTech = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-`;
-
-const TechTag = styled.span`
-  background: ${theme.colors.bgGlass};
-  color: ${theme.colors.accent};
-  padding: 0.3rem 0.8rem;
-  border-radius: ${theme.borderRadius.small};
-  font-size: 0.8rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-`;
+const SocialLink: React.FC<SocialLinkProps> = ({ href, icon, target, rel }) => (
+  <StyledSocialLink
+    href={href}
+    target={target}
+    rel={rel}
+    whileHover={{
+      color: theme.colors.accent,
+      y: -3,
+      z: 20,
+      rotateY: 10,
+      boxShadow: theme.shadows.glow,
+    }}
+  >
+    {icon}
+  </StyledSocialLink>
+);
 
 const Home: React.FC = () => {
-  const featuredProjects = [
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 15, stiffness: 100 };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      const xPercent = (clientX / innerWidth - 0.5) * 20;
+      const yPercent = (clientY / innerHeight - 0.5) * 20;
+      mouseX.set(xPercent);
+      mouseY.set(yPercent);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
+
+  const projects: Project[] = [
     {
       title: 'KhojPandit',
-      description: 'A platform connecting users with pandits for ceremonies and rituals.',
-      image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=1200&h=800',
-      github: 'https://github.com/yourusername/khojpandit',
+      description: 'A dynamic platform connecting users with pandits for ceremonies and rituals. Features include a single admin panel for content management, responsive design, and user-friendly interface.',
+      github: 'https://github.com/jaypeebehera/khojpandit',
       live: 'https://khojpandit.com',
-      tech: ['React', 'Node.js', 'MongoDB'],
+      tech: ['React', 'Node.js', 'MongoDB', 'Bootstrap'],
     },
     {
       title: 'CleanDirty.ai',
-      description: 'A subscription-based storytelling platform with mobile-first design.',
-      image: 'https://images.unsplash.com/photo-1555066931-bf19f8e1083d?auto=format&fit=crop&q=80&w=1200&h=800',
-      github: 'https://github.com/yourusername/cleandirty',
+      description: 'A subscription-based storytelling platform with mobile-first design. Features include personalized reading experience, engaging visuals, and user-centric design for long-form content.',
+      github: 'https://github.com/jaypeebehera/cleandirty',
       live: 'https://cleandirty.ai',
-      tech: ['Next.js', 'TypeScript', 'Tailwind'],
+      tech: ['Next.js', 'TypeScript', 'Tailwind', 'Node.js'],
     },
     {
       title: 'Portfolio Website',
-      description: 'A modern, responsive portfolio website with smooth animations.',
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200&h=800',
-      github: 'https://github.com/yourusername/portfolio',
-      live: 'https://yourportfolio.com',
-      tech: ['React', 'TypeScript', 'Emotion'],
+      description: 'A modern, responsive portfolio website showcasing my work and skills with smooth animations and 3D effects.',
+      github: 'https://github.com/jaypeebehera/portfolio',
+      live: 'https://jaypeebehera.com',
+      tech: ['React', 'TypeScript', 'Emotion', 'Framer Motion'],
+    },
+  ];
+
+  const techStack = [
+    {
+      icon: <FaReact />,
+      name: 'React',
+      description: 'Frontend development with modern React practices',
+      level: 90,
+    },
+    {
+      icon: <FaNodeJs />,
+      name: 'Node.js',
+      description: 'Backend development and server-side solutions',
+      level: 85,
+    },
+    {
+      icon: <FaDatabase />,
+      name: 'MongoDB',
+      description: 'Database design and management',
+      level: 80,
+    },
+    {
+      icon: <FaLaravel />,
+      name: 'Laravel',
+      description: 'PHP framework for web applications',
+      level: 75,
+    },
+    {
+      icon: <FaPython />,
+      name: 'Python',
+      description: 'Scripting and automation solutions',
+      level: 80,
+    },
+    {
+      icon: <FaJava />,
+      name: 'Java',
+      description: 'Enterprise-level applications',
+      level: 75,
+    },
+    {
+      icon: <FaAws />,
+      name: 'AWS',
+      description: 'Cloud infrastructure and services',
+      level: 70,
     },
   ];
 
   return (
     <Container>
-      <HeroSection>
-        <ProfileImage
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <img 
-            src="/images/profile.jpg" 
-            alt="Profile" 
-            loading="lazy"
-            decoding="async"
-          />
-        </ProfileImage>
+      <AnimatedBackground
+        style={{
+          rotateX: useSpring(mouseY, springConfig),
+          rotateY: useSpring(mouseX, springConfig),
+        }}
+      />
 
-        <Title
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          Hi, I'm Jaypee
-        </Title>
-
-        <Subtitle
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          Full Stack Developer
-        </Subtitle>
-
-        <Description
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          I build modern web applications with cutting-edge technologies.
-          Let's create something amazing together.
-        </Description>
-
-        <TechStack
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <TechIcon whileHover={{ scale: 1.1 }}>
-            <FaReact />
-            <TechLabel>React</TechLabel>
-          </TechIcon>
-          <TechIcon whileHover={{ scale: 1.1 }}>
-            <FaNodeJs />
-            <TechLabel>Node.js</TechLabel>
-          </TechIcon>
-          <TechIcon whileHover={{ scale: 1.1 }}>
-            <FaDatabase />
-            <TechLabel>MongoDB</TechLabel>
-          </TechIcon>
-        </TechStack>
-
-        <SocialLinks
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <SocialIcon
-            href="https://github.com/yourusername"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ y: -3 }}
-          >
-            <FaGithub />
-          </SocialIcon>
-          <SocialIcon
-            href="https://linkedin.com/in/yourusername"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ y: -3 }}
-          >
-            <FaLinkedin />
-          </SocialIcon>
-        </SocialLinks>
-      </HeroSection>
-
-      <AboutSection id="about">
-        <SectionTitle>About Me</SectionTitle>
-        <AboutContent>
-          <AboutText>
-            <p>
-              I'm a passionate Full Stack Developer with a strong foundation in web development.
-              My journey in tech started with a curiosity for creating things that make a difference.
-              I specialize in building modern web applications using React, Node.js, and MongoDB.
-            </p>
-            <p>
-              When I'm not coding, you can find me exploring new technologies, contributing to open-source projects,
-              or sharing my knowledge through technical blog posts.
-            </p>
-          </AboutText>
-          <SkillsGrid>
-            <SkillItem>
-              <FaReact /> React & Next.js
-            </SkillItem>
-            <SkillItem>
-              <FaNodeJs /> Node.js & Express
-            </SkillItem>
-            <SkillItem>
-              <FaDatabase /> MongoDB & SQL
-            </SkillItem>
-            <SkillItem>
-              <FaReact /> TypeScript & JavaScript
-            </SkillItem>
-          </SkillsGrid>
-        </AboutContent>
-      </AboutSection>
-
-      <ProjectsSection>
-        <SectionTitle>Featured Projects</SectionTitle>
-        <ProjectsGrid>
-          {featuredProjects.map((project, index) => (
-            <ProjectCard
-              key={project.title}
+      <GridContainer>
+        <HeroSection>
+          <HeroContent>
+            <HeroTitle
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.8 }}
             >
-              <ProjectImage>
-                <img 
-                  src={project.image} 
-                  alt={project.title}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <ProjectImageOverlay />
-                <ProjectLinks>
-                  <ProjectLink href={project.github} target="_blank" rel="noopener noreferrer">
-                    <FaGithub />
-                  </ProjectLink>
-                  <ProjectLink href={project.live} target="_blank" rel="noopener noreferrer">
-                    <FaExternalLinkAlt />
-                  </ProjectLink>
-                </ProjectLinks>
-              </ProjectImage>
-              <ProjectContent>
+              Hi, I'm{' '}
+              <AnimatedText
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                Jayprakash Behera
+              </AnimatedText>
+            </HeroTitle>
+            <HeroSubtitle
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Web & Mobile App Developer
+            </HeroSubtitle>
+            <HeroDescription
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              A skilled developer with a B.Sc. in Computer Science and ongoing MCA studies. 
+              I specialize in creating high-performing, scalable, and user-friendly solutions that help businesses thrive digitally.
+            </HeroDescription>
+            
+            <HeroStats
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <StatItem
+                whileHover={{ scale: 1.05 }}
+              >
+                <StatNumber>3+</StatNumber>
+                <StatLabel>Years Experience</StatLabel>
+              </StatItem>
+              <StatItem
+                whileHover={{ scale: 1.05 }}
+              >
+                <StatNumber>20+</StatNumber>
+                <StatLabel>Projects Completed</StatLabel>
+              </StatItem>
+              <StatItem
+                whileHover={{ scale: 1.05 }}
+              >
+                <StatNumber>15+</StatNumber>
+                <StatLabel>Technologies</StatLabel>
+              </StatItem>
+            </HeroStats>
+
+            <SocialLinks
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
+              <SocialLink
+                href="https://github.com/Jaypee-2003"
+                icon={<FaGithub />}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+              <SocialLink
+                href="https://www.linkedin.com/in/jayprakash-behera-69a212252"
+                icon={<FaLinkedin />}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+              <SocialLink
+                href="mailto:jaypeebehera@gmail.com"
+                icon={<FaEnvelope />}
+              />
+              <SocialLink
+                href="https://twitter.com/jaypeebehera"
+                icon={<FaTwitter />}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            </SocialLinks>
+          </HeroContent>
+        </HeroSection>
+
+        <TechSection>
+          <TechContainer>
+            <SectionTitle
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              Tech Stack
+            </SectionTitle>
+            <TechGrid>
+              {techStack.map((tech, index) => (
+                <TechCard
+                  key={tech.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{
+                    scale: 1.05,
+                    rotateY: 5,
+                    translateZ: 20,
+                    boxShadow: theme.shadows.glow,
+                  }}
+                >
+                  <TechIconWrapper>
+                    <TechIcon
+                      whileHover={{
+                        scale: 1.1,
+                        rotateY: 10,
+                        color: theme.colors.accent,
+                      }}
+                    >
+                      {tech.icon}
+                    </TechIcon>
+                  </TechIconWrapper>
+                  <TechName>{tech.name}</TechName>
+                  <TechDescription>{tech.description}</TechDescription>
+                  <TechLevel>
+                    <span style={{ fontSize: '0.8rem', color: theme.colors.textSecondary }}>
+                      Proficiency: {tech.level}%
+                    </span>
+                    <TechLevelBar>
+                      <TechLevelFill
+                        initial={{ width: 0 }}
+                        animate={{ width: `${tech.level}%` }}
+                        transition={{ duration: 1, delay: index * 0.1 + 0.5 }}
+                      />
+                    </TechLevelBar>
+                  </TechLevel>
+                </TechCard>
+              ))}
+            </TechGrid>
+          </TechContainer>
+        </TechSection>
+
+        <ProjectsSection>
+          <SectionTitle
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            Featured Projects
+          </SectionTitle>
+          <ProjectsGrid>
+            {projects.map((project, index) => (
+              <ProjectCard
+                key={project.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+              >
                 <ProjectTitle>{project.title}</ProjectTitle>
                 <ProjectDescription>{project.description}</ProjectDescription>
                 <ProjectTech>
                   {project.tech.map((tech) => (
-                    <TechTag key={tech}>{tech}</TechTag>
+                    <TechTag key={tech} whileHover={{ scale: 1.05 }}>
+                      {tech}
+                    </TechTag>
                   ))}
                 </ProjectTech>
-              </ProjectContent>
-            </ProjectCard>
-          ))}
-        </ProjectsGrid>
-      </ProjectsSection>
+              </ProjectCard>
+            ))}
+          </ProjectsGrid>
+        </ProjectsSection>
+      </GridContainer>
     </Container>
   );
 };
