@@ -1,13 +1,14 @@
 {
   "files": {
     "main.css": "/jaypee/static/css/main.06698440.css",
-    "main.js": "/jaypee/static/js/main.f75b3de3.js",
+    "main.js": "/jaypee/static/js/main.f64ce51c.js",
+    "static/media/profile.jpg": "/jaypee/static/media/profile.3b9e6ebe921d79c78752.jpg",
     "index.html": "/jaypee/index.html",
     "main.06698440.css.map": "/jaypee/static/css/main.06698440.css.map",
-    "main.f75b3de3.js.map": "/jaypee/static/js/main.f75b3de3.js.map"
+    "main.f64ce51c.js.map": "/jaypee/static/js/main.f64ce51c.js.map"
   },
   "entrypoints": [
     "static/css/main.06698440.css",
-    "static/js/main.f75b3de3.js"
+    "static/js/main.f64ce51c.js"
   ]
 }
