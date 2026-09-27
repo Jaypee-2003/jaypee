@@ -1,20 +1,21 @@
 {
   "files": {
     "main.css": "/jaypee/static/css/main.053d6ff6.css",
-    "main.js": "/jaypee/static/js/main.1158514a.js",
-    "static/js/927.dbe68815.chunk.js": "/jaypee/static/js/927.dbe68815.chunk.js",
-    "static/js/650.b5e4b2cf.chunk.js": "/jaypee/static/js/650.b5e4b2cf.chunk.js",
-    "static/media/profile linked in.jpeg": "/jaypee/static/media/profile linked in.af6dbef1e85fe8f36f77.jpeg",
+    "main.js": "/jaypee/static/js/main.45af6029.js",
+    "static/js/927.41fc432a.chunk.js": "/jaypee/static/js/927.41fc432a.chunk.js",
+    "static/js/650.52ab09d3.chunk.js": "/jaypee/static/js/650.52ab09d3.chunk.js",
+    "static/media/profile.jpg": "/jaypee/static/media/profile.af6dbef1e85fe8f36f77.jpg",
     "static/media/archivo-latin-600-normal.woff": "/jaypee/static/media/archivo-latin-600-normal.73bde4e0c24968ef7719.woff",
     "static/media/big-shoulders-stencil-display-latin-800-normal.woff": "/jaypee/static/media/big-shoulders-stencil-display-latin-800-normal.09e4aff4dea8cb3c98de.woff",
+    "static/media/jp-mark.png": "/jaypee/static/media/jp-mark.ba6baaec7516b471ad76.png",
     "index.html": "/jaypee/index.html",
     "main.053d6ff6.css.map": "/jaypee/static/css/main.053d6ff6.css.map",
-    "main.1158514a.js.map": "/jaypee/static/js/main.1158514a.js.map",
-    "927.dbe68815.chunk.js.map": "/jaypee/static/js/927.dbe68815.chunk.js.map",
-    "650.b5e4b2cf.chunk.js.map": "/jaypee/static/js/650.b5e4b2cf.chunk.js.map"
+    "main.45af6029.js.map": "/jaypee/static/js/main.45af6029.js.map",
+    "927.41fc432a.chunk.js.map": "/jaypee/static/js/927.41fc432a.chunk.js.map",
+    "650.52ab09d3.chunk.js.map": "/jaypee/static/js/650.52ab09d3.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.053d6ff6.css",
-    "static/js/main.1158514a.js"
+    "static/js/main.45af6029.js"
   ]
 }
