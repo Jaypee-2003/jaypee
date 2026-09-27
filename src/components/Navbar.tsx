@@ -4,114 +4,118 @@ import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { theme } from '../styles/theme';
+import { NavSection, SECTIONS, sectionForStop } from '../site/stops';
+import { scrollToStop, useActiveStop } from '../site/store';
+import { SiteModeState } from '../site/mode';
 
+// A solid ink strip across the top of the frame — nothing translucent, nothing blurred
 const Nav = styled.nav`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  background: ${theme.colors.bgCard};
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid ${theme.colors.highlightTransparent};
-  box-shadow: ${theme.shadows.card};
+  background: ${theme.colors.ink};
+  border-bottom: 1px solid ${theme.colors.ruleOnInk};
 `;
 
 const NavContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1440px;
+  height: ${theme.layout.navHeight};
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 0 ${theme.layout.gutter};
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
+  gap: 1.5rem;
 `;
 
 const Logo = styled(Link)`
-  font-size: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: ${theme.fonts.display};
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  color: ${theme.colors.bone};
+
+  &::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: ${theme.colors.amber};
+  }
+`;
+
+const navType = `
+  font-family: ${theme.fonts.display};
   font-weight: 700;
-  color: ${theme.colors.accent};
-  text-decoration: none;
-  font-family: 'Inter', sans-serif;
-  transition: ${theme.transitions.default};
-
-  &:hover {
-    transform: translateY(-2px);
-    text-shadow: ${theme.shadows.glow};
-  }
-
-  @media (max-width: 768px) {
-    font-size: 1.5rem;
-  }
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 `;
 
 const NavLinks = styled.div`
   display: flex;
-  gap: 2rem;
+  gap: 1.9rem;
   align-items: center;
 
   a {
-    color: ${theme.colors.textPrimary};
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
-    position: relative;
-    padding: 0.5rem 0;
+    ${navType}
+    color: ${theme.colors.boneMuted};
+    padding: 0.4rem 0;
+    border-bottom: 2px solid transparent;
+    transition: color ${theme.transitions.fast}, border-color ${theme.transitions.fast};
 
     &:hover {
-      color: ${theme.colors.accent};
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: 0;
-      left: 0;
-      background: ${theme.colors.accent};
-      transition: width 0.3s ease;
-    }
-
-    &:hover::after {
-      width: 100%;
+      color: ${theme.colors.bone};
     }
 
     &.active {
-      color: ${theme.colors.accent};
-      &::after {
-        width: 100%;
-      }
+      color: ${theme.colors.bone};
+      border-bottom-color: ${theme.colors.amber};
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     display: none;
+  }
+`;
+
+// Switch between the live 3D yard and the plain document
+const ViewToggle = styled.button`
+  ${navType}
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid ${theme.colors.ruleOnInk};
+  background: none;
+  color: ${theme.colors.boneMuted};
+  cursor: pointer;
+  transition: color ${theme.transitions.fast}, border-color ${theme.transitions.fast};
+
+  &:hover {
+    color: ${theme.colors.bone};
+    border-color: ${theme.colors.boneDim};
   }
 `;
 
 const MobileMenuButton = styled.button`
   display: none;
   background: none;
-  border: none;
-  color: ${theme.colors.textPrimary};
-  font-size: 1.5rem;
+  border: 1px solid ${theme.colors.ruleOnInk};
+  color: ${theme.colors.bone};
+  font-size: 1.1rem;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: ${theme.borderRadius.small};
-  transition: ${theme.transitions.default};
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
   z-index: 1001;
 
-  &:hover {
-    color: ${theme.colors.accent};
-    transform: translateY(-2px);
-  }
-
-  @media (max-width: 768px) {
-    display: block;
+  @media (max-width: 900px) {
+    display: inline-flex;
   }
 `;
 
@@ -122,61 +126,39 @@ const MobileMenu = styled(motion.div)`
   right: 0;
   bottom: 0;
   width: 100%;
-  background: ${theme.colors.bgCard};
-  backdrop-filter: blur(10px);
-  padding: 5rem 2rem 2rem;
+  background: ${theme.colors.ink};
+  padding: calc(${theme.layout.navHeight} + 2rem) ${theme.layout.gutter} 2rem;
   z-index: 1000;
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 2rem;
   }
 `;
 
 const MobileNavLink = styled(Link)`
-  color: ${theme.colors.textPrimary};
-  text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: 500;
-  padding: 0.5rem;
-  transition: ${theme.transitions.default};
-  position: relative;
-  width: 100%;
-  text-align: center;
+  font-family: ${theme.fonts.display};
+  font-weight: 800;
+  font-size: 2.6rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: ${theme.colors.boneMuted};
+  padding: 0.55rem 0;
+  border-bottom: 1px solid ${theme.colors.ruleOnInk};
 
   &:hover {
-    color: ${theme.colors.accent};
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    background: ${theme.colors.accent};
-    transition: width 0.3s ease;
-  }
-
-  &:hover::after {
-    width: 50%;
+    color: ${theme.colors.bone};
   }
 
   &.active {
-    color: ${theme.colors.accent};
-    &::after {
-      width: 50%;
-    }
+    color: ${theme.colors.amber};
   }
 `;
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ site: SiteModeState }> = ({ site }) => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const location = useLocation();
+  const current = sectionForStop(useActiveStop());
 
   // Close menu when route changes
   useEffect(() => {
@@ -203,25 +185,36 @@ const Navbar: React.FC = () => {
     };
   }, [isMenuOpen]);
 
+  // Following a link to the section already in the URL doesn't change the route, so move there directly
+  const go = (section: NavSection) => (): void => {
+    if (section.route === location.pathname) scrollToStop(section.stop);
+  };
+
   return (
-    <Nav>
+    <Nav aria-label="Sections">
       <NavContainer>
-        <Logo to="/">JP</Logo>
+        <Logo to="/" onClick={go(SECTIONS[0])} aria-label="Jayprakash Behera — home">
+          JPB
+        </Logo>
         <NavLinks>
-          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-            Home
-          </Link>
-          <Link to="/about" className={location.pathname === '/about' ? 'active' : ''}>
-            About
-          </Link>
-          <Link to="/projects" className={location.pathname === '/projects' ? 'active' : ''}>
-            Projects
-          </Link>
-          <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
-            Contact
-          </Link>
+          {SECTIONS.map((section) => (
+            <Link
+              key={section.route}
+              to={section.route}
+              onClick={go(section)}
+              className={section === current ? 'active' : ''}
+              aria-current={section === current ? 'location' : undefined}
+            >
+              {section.label}
+            </Link>
+          ))}
+          {site.canScene && (
+            <ViewToggle type="button" onClick={() => site.choose(site.mode === 'scene' ? 'document' : 'scene')}>
+              {site.mode === 'scene' ? 'Plain view' : '3D view'}
+            </ViewToggle>
+          )}
         </NavLinks>
-        <MobileMenuButton onClick={toggleMenu} aria-label="Toggle menu">
+        <MobileMenuButton onClick={toggleMenu} aria-label="Toggle menu" aria-expanded={isMenuOpen}>
           {isMenuOpen ? <FaTimes /> : <FaBars />}
         </MobileMenuButton>
       </NavContainer>
@@ -234,18 +227,19 @@ const Navbar: React.FC = () => {
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 20 }}
           >
-            <MobileNavLink to="/" className={location.pathname === '/' ? 'active' : ''} onClick={closeMenu}>
-              Home
-            </MobileNavLink>
-            <MobileNavLink to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={closeMenu}>
-              About
-            </MobileNavLink>
-            <MobileNavLink to="/projects" className={location.pathname === '/projects' ? 'active' : ''} onClick={closeMenu}>
-              Projects
-            </MobileNavLink>
-            <MobileNavLink to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>
-              Contact
-            </MobileNavLink>
+            {SECTIONS.map((section) => (
+              <MobileNavLink
+                key={section.route}
+                to={section.route}
+                className={section === current ? 'active' : ''}
+                onClick={() => {
+                  go(section)();
+                  closeMenu();
+                }}
+              >
+                {section.label}
+              </MobileNavLink>
+            ))}
           </MobileMenu>
         )}
       </AnimatePresence>
@@ -253,4 +247,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

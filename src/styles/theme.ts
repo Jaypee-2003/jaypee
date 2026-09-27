@@ -1,50 +1,40 @@
+// Night shift at a container terminal: ink-navy night, bone-white paint and paper, sodium-amber signal light.
+// Three colours, used by what they are in the yard rather than as decoration:
+//   ink    — the night itself (page, sky, fog) and dark enamel/glass
+//   bone   — paint, paper and enamel: anything that carries words
+//   amber  — light. Lamps, the lightbox, the live status. Copper is amber's dark shade, for use on bone.
 export const theme = {
   colors: {
-    // Background colors
-    bgPrimary: '#0a192f',      // Dark navy blue
-    bgSecondary: '#112240',    // Slightly lighter navy
-    bgCard: 'rgba(17, 34, 64, 0.7)', // Semi-transparent card background
-    bgGlass: 'rgba(255, 255, 255, 0.05)', // Subtle glass effect
-    
-    // Text colors
-    textPrimary: '#e6f1ff',    // Bright white
-    textSecondary: '#8892b0',  // Muted blue-gray
-    textMuted: '#8892b0',      // Muted text
-    
-    // Accent colors
-    accent: '#64ffda',         // Bright cyan
-    accentLight: '#88ffea',    // Light cyan
-    accentGlow: 'rgba(100, 255, 218, 0.3)',
-    highlightTransparent: 'rgba(100, 255, 218, 0.1)',
-    
-    // Secondary colors
-    neonPink: '#ff6b6b',       // Coral pink
-    neonPurple: '#bd93f9',     // Soft purple
-    neonBlue: '#8be9fd',       // Light blue
+    ink: '#0B121C',
+    inkRaised: '#172234', // dark enamel and steel boards
+    bone: '#ECE4D2',
+    boneMuted: '#B7B09F', // secondary text on ink (8:1)
+    boneDim: '#8E8878', // labels on ink (5:1)
+    amber: '#F0A13A',
+    copper: '#8F4A14', // amber on bone paper (5:1)
+    inkMuted: '#4F5563', // secondary text on bone (5.8:1)
+    ruleOnInk: 'rgba(236, 228, 210, 0.18)',
+    ruleOnBone: 'rgba(11, 18, 28, 0.22)',
   },
-  
-  gradients: {
-    primary: 'linear-gradient(135deg, #0a192f 0%, #112240 100%)',
-    accent: 'linear-gradient(45deg, #64ffda, #88ffea)',
-    glass: 'linear-gradient(45deg, rgba(100, 255, 218, 0.1), rgba(255, 255, 255, 0.05))',
-    neon: 'linear-gradient(45deg, #64ffda, #ff6b6b)',
+
+  fonts: {
+    // Big Shoulders: condensed industrial capitals. Its stencil cut is used for paint on steel in the 3D scene.
+    display: `'Big Shoulders Display', 'Arial Narrow', sans-serif`,
+    body: `'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif`,
   },
-  
-  shadows: {
-    glow: '0 0 20px rgba(100, 255, 218, 0.2)',
-    card: '0 4px 20px rgba(0, 0, 0, 0.2)',
-    neonGlow: '0 0 20px rgba(255, 107, 107, 0.2)',
-  },
-  
+
   transitions: {
-    default: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    slow: '0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+    fast: '0.18s ease-out',
   },
-  
-  borderRadius: {
-    small: '8px',
-    medium: '12px',
-    large: '20px',
-    circle: '50%',
+
+  layout: {
+    navHeight: '3.5rem',
+    gutter: 'clamp(1rem, 4vw, 3rem)',
+    max: '1200px',
   },
-}; 
+
+  breakpoints: {
+    sm: '560px',
+    md: '900px',
+  },
+};

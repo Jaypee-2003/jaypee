@@ -1,35 +1,28 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@emotion/react';
-import styled from '@emotion/styled';
-import { theme } from './styles/theme';
+import React, { lazy, Suspense } from 'react';
+import { HashRouter } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Projects from './pages/Projects';
+import DocumentSite from './document/DocumentSite';
+import { RouteSync } from './site/RouteSync';
+import { stillStop, useSiteMode } from './site/mode';
 
-const AppContainer = styled.div`
-  min-height: 100vh;
-  background: ${theme.colors.bgPrimary};
-  color: ${theme.colors.textPrimary};
-`;
+// The 3D yard is its own chunk (three, drei, troika): phones and reduced-motion visitors never load it
+const SceneSite = lazy(() => import('./scene/SceneSite'));
 
 const App: React.FC = () => {
+  const site = useSiteMode();
+
   return (
-    <ThemeProvider theme={theme}>
-      <Router>
-        <AppContainer>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/contact" element={<Contact />} />
-          </Routes>
-        </AppContainer>
-      </Router>
-    </ThemeProvider>
+    <HashRouter>
+      <RouteSync mode={site.mode} />
+      {!stillStop && <Navbar site={site} />}
+      {site.mode === 'scene' ? (
+        <Suspense fallback={null}>
+          <SceneSite onFail={site.fail} />
+        </Suspense>
+      ) : (
+        <DocumentSite />
+      )}
+    </HashRouter>
   );
 };
 

@@ -1,34 +1,96 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Fonts are loaded in public/index.html (Big Shoulders Display / Archivo).
+   Colours mirror src/styles/theme.ts so the first paint is already the night, not white. */
 
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  color: #333333;
-  line-height: 1.6;
+html {
+  background: #0b121c;
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  color: #ece4d2;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  font-weight: 800;
+  line-height: 0.95;
 }
 
 a {
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
 }
 
 img {
   max-width: 100%;
   height: auto;
+  display: block;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+::selection {
+  background: #f0a13a;
+  color: #0b121c;
+}
+
+:focus-visible {
+  outline: 2px solid #f0a13a;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* drei <Html> wrappers in the 3D scene. clip (not hidden) so focusing a control inside can't
+   programmatically scroll the wrapper and knock the CSS 3D transform out of register. */
+.scene-html {
+  overflow: clip !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
