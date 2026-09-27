@@ -1,5 +1,6 @@
 // Renders a clean photograph of each location in the 3D yard for the plain (document) view:
-// public/stills/<stop>.jpg. Stills have their own framing and none of the signs (see ?still in src/site/mode.ts).
+// public/stills/<stop>.jpg (night) and public/stills/day/<stop>.jpg (day, for the light theme). Stills have their
+// own framing and none of the signs (see ?still in src/site/mode.ts).
 // The About section has no still — the portrait is its picture.
 //
 //   npm run build && npm run stills && npm run build
@@ -42,19 +43,26 @@ const serveBuild = () =>
 (async () => {
   const arg = process.argv.find((a) => a.startsWith('--url='));
   const hosted = arg ? { server: null, url: arg.slice(6) } : await serveBuild();
-  fs.mkdirSync(OUT, { recursive: true });
+  const TIMES = [
+    { time: 'night', dir: OUT },
+    { time: 'day', dir: path.join(OUT, 'day') },
+  ];
+  TIMES.forEach(({ dir }) => fs.mkdirSync(dir, { recursive: true }));
 
   const browser = await chromium.launch({
     executablePath: CHROME,
     args: ['--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'],
   });
   const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
-  for (const stop of STOPS) {
-    await page.goto(`${hosted.url}?still=${stop}#/`, { waitUntil: 'load' });
-    await page.waitForFunction(() => document.documentElement.dataset.still === 'ready', null, { timeout: 60000 });
-    await page.waitForTimeout(600);
-    await page.screenshot({ path: path.join(OUT, `${stop}.jpg`), type: 'jpeg', quality: 78 });
-    console.log(`stills/${stop}.jpg`);
+  for (const { time, dir } of TIMES) {
+    for (const stop of STOPS) {
+      await page.goto(`${hosted.url}?still=${stop}&time=${time}#/`, { waitUntil: 'load' });
+      await page.waitForFunction(() => document.documentElement.dataset.still === 'ready', null, { timeout: 60000 });
+      await page.waitForTimeout(600);
+      const file = path.join(dir, `${stop}.jpg`);
+      await page.screenshot({ path: file, type: 'jpeg', quality: 78 });
+      console.log(path.relative(ROOT, file));
+    }
   }
   await browser.close();
   if (hosted.server) hosted.server.close();

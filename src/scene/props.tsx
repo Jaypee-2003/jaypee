@@ -1,11 +1,12 @@
 import React, { ReactNode, useLayoutEffect, useMemo, useRef } from 'react';
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   BufferAttribute,
   BufferGeometry,
   Color,
   CustomBlending,
   InstancedMesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   PerspectiveCamera,
@@ -17,6 +18,7 @@ import { corrugationBump, radialGlow, worldBox } from './textures';
 import { PAL, Paint as PaintName } from './palette';
 import { FOG } from './fog';
 import { Paint } from './Paint';
+import { lampShare } from './daylight';
 
 /* ───────────────────────── Shipping containers ───────────────────────── */
 
@@ -136,6 +138,7 @@ const haloFragment = /* glsl */ `
   }
 `;
 
+// Halos are the glow of a lamp in night air: they fade out by day
 export const Halos: React.FC<{ points: { at: [number, number, number]; size: number }[]; strength?: number }> = ({
   points,
   strength = 0.55,
@@ -167,12 +170,19 @@ export const Halos: React.FC<{ points: { at: [number, number, number]; size: num
   // World size → pixels at unit distance, for the current viewport height and FOV
   const fov = (camera as PerspectiveCamera).fov;
   material.uniforms.uScale.value = (size.height * gl.getPixelRatio()) / (2 * Math.tan((fov * Math.PI) / 360));
+  useFrame(() => {
+    material.uniforms.uStrength.value = strength * lampShare();
+  });
   return <points geometry={geometry} material={material} frustumCulled={false} />;
 };
 
 // Pools of lamplight on the asphalt: additive decals, one draw call for the whole yard
 export const Pools: React.FC<{ pools: { at: [number, number]; radius: number }[] }> = ({ pools }) => {
   const ref = useRef<InstancedMesh>(null);
+  const glow = useRef<MeshBasicMaterial>(null);
+  useFrame(() => {
+    if (glow.current) glow.current.opacity = 0.22 * lampShare();
+  });
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
@@ -190,6 +200,7 @@ export const Pools: React.FC<{ pools: { at: [number, number]; radius: number }[]
     <instancedMesh ref={ref} args={[undefined, undefined, pools.length]}>
       <planeGeometry />
       <meshBasicMaterial
+        ref={glow}
         map={radialGlow()}
         color={PAL.lamp}
         transparent

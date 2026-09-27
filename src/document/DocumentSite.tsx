@@ -4,6 +4,7 @@ import { theme } from '../styles/theme';
 import { projects } from '../data/profile';
 import { StopId } from '../site/stops';
 import { setActiveStop, setScroller } from '../site/store';
+import { TimeOfDay, useTimeOfDay } from '../site/timeOfDay';
 import { GateSign } from '../content/GateSign';
 import { OperatorBoard } from '../content/OperatorBoard';
 import { CaseLightbox } from '../content/CaseLightbox';
@@ -16,7 +17,9 @@ import { DispatchWindow, EducationPlaque, OrderSlip } from '../content/Dispatch'
 // forms set as the readable page around it. For phones and tablets, reduced motion, low-end hardware,
 // no WebGL — or anyone who picks "Plain view". Nothing here is scroll-driven.
 
-const still = (id: StopId): string => `${process.env.PUBLIC_URL}/stills/${id}.jpg`;
+// Night photographs by default; the light theme shows the same places by day (scripts/render-stills.js)
+const still = (id: StopId, time: TimeOfDay): string =>
+  `${process.env.PUBLIC_URL}/stills/${time === 'day' ? 'day/' : ''}${id}.jpg`;
 
 /* ───────────────────────── Layout ───────────────────────── */
 
@@ -49,14 +52,14 @@ const Head = styled.p`
   b {
     font-size: 1.1rem;
     letter-spacing: 0.12em;
-    color: ${theme.colors.amber};
+    color: ${theme.ui.accentText};
   }
 
   span {
     font-size: clamp(1.9rem, 5vw, 2.9rem);
     line-height: 1;
     letter-spacing: 0.02em;
-    color: ${theme.colors.bone};
+    color: ${theme.ui.text};
   }
 
   &::after {
@@ -64,7 +67,7 @@ const Head = styled.p`
     flex: 1;
     align-self: center;
     height: 1px;
-    background: ${theme.colors.ruleOnInk};
+    background: ${theme.ui.rule};
   }
 `;
 
@@ -84,7 +87,7 @@ const Photo = styled.figure`
     max-height: var(--max-height, none);
     object-fit: cover;
     object-position: var(--focus, 50% 50%);
-    background: ${theme.colors.inkRaised};
+    background: ${theme.ui.pageRaised};
   }
 
   figcaption {
@@ -94,7 +97,7 @@ const Photo = styled.figure`
     font-size: 0.8rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: ${theme.colors.boneDim};
+    color: ${theme.ui.textDim};
   }
 
   /* where a placard overlaps the bottom of the picture, the caption goes above it instead */
@@ -119,6 +122,7 @@ const Photo = styled.figure`
 const Hold = styled.div`
   container-type: inline-size;
   position: relative;
+  box-shadow: ${theme.ui.shadow};
 `;
 
 type PhotoProps = {
@@ -134,23 +138,26 @@ type PhotoProps = {
   captionTop?: boolean;
 };
 
-const Picture: React.FC<PhotoProps> = ({ id, alt, caption, ratio, ratioSm, focus, maxHeight, className, eager, captionTop }) => (
-  <Photo
-    className={className}
-    data-caption={captionTop ? 'top' : undefined}
-    style={
-      {
-        '--ratio': ratio,
-        '--ratio-sm': ratioSm,
-        '--focus': focus,
-        '--max-height': maxHeight,
-      } as CSSProperties
-    }
-  >
-    <img src={still(id)} alt={alt} loading={eager ? 'eager' : 'lazy'} width={1600} height={900} />
-    <figcaption>{caption}</figcaption>
-  </Photo>
-);
+const Picture: React.FC<PhotoProps> = ({ id, alt, caption, ratio, ratioSm, focus, maxHeight, className, eager, captionTop }) => {
+  const time = useTimeOfDay();
+  return (
+    <Photo
+      className={className}
+      data-caption={captionTop ? 'top' : undefined}
+      style={
+        {
+          '--ratio': ratio,
+          '--ratio-sm': ratioSm,
+          '--focus': focus,
+          '--max-height': maxHeight,
+        } as CSSProperties
+      }
+    >
+      <img src={still(id, time)} alt={alt} loading={eager ? 'eager' : 'lazy'} width={1600} height={900} />
+      <figcaption>{caption}</figcaption>
+    </Photo>
+  );
+};
 
 /* ───────────────────────── Gate (hero) ───────────────────────── */
 
@@ -266,6 +273,8 @@ const Plaque = styled(Hold)`
 /* ───────────────────────── Page ───────────────────────── */
 
 const DocumentSite: React.FC = () => {
+  const night = useTimeOfDay() === 'night';
+
   useLayoutEffect(() => {
     setScroller((id, smooth) => {
       const behavior = smooth ? 'smooth' : 'auto';
@@ -298,8 +307,12 @@ const DocumentSite: React.FC = () => {
           ratioSm="4 / 3"
           focus="62% 50%"
           maxHeight={`calc(78vh - ${theme.layout.navHeight})`}
-          alt="Night at a container terminal: “Jayprakash” and “Behera” stencilled across a stack of shipping containers under an amber floodlight."
-          caption="The gate · night shift"
+          alt={
+            night
+              ? 'Night at a container terminal: “Jayprakash” and “Behera” stencilled across a stack of shipping containers under an amber floodlight.'
+              : 'A container terminal by day: “Jayprakash” and “Behera” stencilled across a stack of shipping containers.'
+          }
+          caption={night ? 'The gate · night shift' : 'The gate · day shift'}
         />
         <Wrap>
           <HeroSign>
@@ -325,7 +338,7 @@ const DocumentSite: React.FC = () => {
               id="bay"
               ratio="16 / 10"
               focus="45% 55%"
-              alt="A loading bay at night: four containers marked Inventory, Tasks, Vendors and Orders hang from one gantry beam marked “REST API · JWT + RBAC”, piped into tanks marked Redis and MongoDB."
+              alt={`A loading bay ${night ? 'at night' : 'by day'}: four containers marked Inventory, Tasks, Vendors and Orders hang from one gantry beam marked “REST API · JWT + RBAC”, piped into tanks marked Redis and MongoDB.`}
               caption="The loading bay · four modules on one API gantry"
             />
             <Hold>
@@ -387,7 +400,11 @@ const DocumentSite: React.FC = () => {
             ratioSm="4 / 3"
             focus="45% 50%"
             captionTop
-            alt="The dispatch office at the end of the quay at night, its window lit amber behind half-drawn blinds."
+            alt={
+              night
+                ? 'The dispatch office at the end of the quay at night, its window lit amber behind half-drawn blinds.'
+                : 'The dispatch office at the end of the quay by day, cranes over the water behind it.'
+            }
             caption="The dispatch office · end of the quay"
           />
           <ContactGrid>

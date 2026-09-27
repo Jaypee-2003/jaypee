@@ -56,6 +56,23 @@ The nav, links and URLs jump the camera to a stop, and the URL follows you as yo
   </tr>
 </table>
 
+## Night shift or day shift
+
+The sun/moon switch in the nav changes the time of day across the whole site, and your choice is remembered.
+
+- **3D view:** the yard itself changes.
+  - **Night:** a navy sky, fog and a low moon. Everything warm comes from sodium street lamps and floodlights.
+  - **Day:** a hazy sky, a high sun and real surface colours. The street lamps and floodlights switch off, but the signal lamps and the live status lamp stay lit, because those are signals.
+  - Switching fades like a dusk or a dawn over about a second.
+- **Plain view:** a dark theme and a light "paper" theme. Each place's photograph is shown by night or by day to match.
+
+<table>
+  <tr>
+    <td width="50%"><img src="public/stills/gate.jpg" alt="The gate by night: the name on the containers under an amber floodlight" /></td>
+    <td width="50%"><img src="public/stills/day/gate.jpg" alt="The gate by day: the name on the containers under a hazy sky" /></td>
+  </tr>
+</table>
+
 ## The look
 
 Three colours, each used for what it is in the yard. None of them are decoration.
@@ -90,7 +107,7 @@ The 3D yard runs on roomy desktop screens with a fine pointer. Everyone else get
 - visitors with `prefers-reduced-motion`
 - low-end hardware or data-saver mode
 - browsers without WebGL
-- anyone who clicks **Plain view** in the nav
+- anyone who picks **Plain** on the 3D / Plain switch in the nav
 
 The plain view scrolls normally, with no scroll-jacking, and never downloads the 3D code.
 
@@ -120,7 +137,7 @@ src/
 ├── components/Navbar.tsx
 └── styles/theme.ts        ← ink · bone · amber, type, layout
 scripts/render-stills.js   ← renders the plain view's location photos from the 3D scene
-public/stills/             ← those photos (committed)
+public/stills/             ← those photos by night, and by day in stills/day/ (committed)
 ```
 
 ## Run it locally
@@ -135,7 +152,7 @@ npm run build      # production build in ./build (the same check CI runs: CI=tru
 
 **Editing content:** everything visible (profile, experience, projects, skills, education, contact) comes from [`src/data/profile.ts`](src/data/profile.ts). Change it there and both views update.
 
-**Changing the 3D scene:** the plain view's location photos are rendered from the scene, not drawn by hand. After moving the camera or changing a location, re-render them:
+**Changing the 3D scene:** the plain view's location photos are rendered from the scene, not drawn by hand, as a night set (`public/stills/`) and a day set (`public/stills/day/`). After moving the camera, changing a location or adjusting the lighting, re-render both:
 
 ```bash
 npm run build && npm run stills && npm run build

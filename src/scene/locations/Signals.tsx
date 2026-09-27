@@ -4,6 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { skillGroups } from '../../data/profile';
 import { PAL } from '../palette';
 import { Halos, Paint } from '../props';
+import { LampPoint } from '../daylight';
 
 // Skills as a signal gantry over the lane: one signal head per group, one lit lamp per skill, named
 // beside it. (The same list is in the DOM for assistive tech — see SkillsBoard.)
@@ -79,7 +80,7 @@ export const Signals: React.FC = () => {
         <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={1.15} toneMapped={false} />
       </mesh>
       <Halos points={lamps} strength={0.55} />
-      <pointLight position={[CENTER_X, 5, Z + 4]} color={PAL.lamp} intensity={70} distance={20} decay={2} />
+      <LampPoint position={[CENTER_X, 5, Z + 4]} color={PAL.lamp} intensity={70} dayShare={0.25} distance={20} decay={2} />
 
       {skillGroups.map((g, i) => {
         const x = headX(i);

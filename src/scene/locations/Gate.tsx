@@ -4,6 +4,7 @@ import { Mesh, MeshStandardMaterial, Object3D, PointLight, SpotLight, Vector3 } 
 import { GateSign, GATE_SIGN } from '../../content/GateSign';
 import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
+import { LampGlow, useLampLight } from '../daylight';
 import { Placard } from '../Placard';
 import { Container, Halos, IdMark, Paint, Post } from '../props';
 
@@ -58,6 +59,7 @@ const StatusLamp: React.FC = () => {
 const Floodlight: React.FC = () => {
   const target = useRef<Object3D>(null);
   const spot = useRef<SpotLight>(null);
+  useLampLight(spot, 1500);
   useFrame(() => {
     if (spot.current && target.current && spot.current.target !== target.current) spot.current.target = target.current;
   });
@@ -118,7 +120,7 @@ export const Gate: React.FC = () => (
     </mesh>
     <mesh position={[9.89, 1.6, 5]} rotation={[0, -Math.PI / 2, 0]}>
       <planeGeometry args={[2.2, 1]} />
-      <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={0.7} toneMapped={false} />
+      <LampGlow intensity={0.7} dayShare={0.15} />
     </mesh>
     <group position={[9.6, 1.05, 7.4]} rotation={[0, 0, 1.25]}>
       <mesh position={[3.2, 0, 0]}>

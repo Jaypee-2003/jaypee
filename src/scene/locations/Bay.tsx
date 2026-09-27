@@ -6,6 +6,7 @@ import { experience } from '../../data/profile';
 import { CaseLightbox, CASE_LIGHTBOX } from '../../content/CaseLightbox';
 import { stillStop } from '../../site/mode';
 import { PAL, Paint as PaintName } from '../palette';
+import { LampGlow, useLampLight } from '../daylight';
 import { Placard } from '../Placard';
 import { Container, IdMark, Paint, Post } from '../props';
 
@@ -44,6 +45,7 @@ const Towers: React.FC = () => {
 const Worklight: React.FC = () => {
   const target = useRef<Object3D>(null);
   const spot = useRef<SpotLight>(null);
+  useLampLight(spot, 1300);
   useFrame(() => {
     if (spot.current && target.current && spot.current.target !== target.current) spot.current.target = target.current;
   });
@@ -86,7 +88,7 @@ export const Bay: React.FC = () => {
       </Paint>
       <mesh position={[beamX, BEAM.y - 0.47, Z + 0.1]}>
         <boxGeometry args={[beamLength - 0.6, 0.05, 0.3]} />
-        <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={1.2} toneMapped={false} />
+        <LampGlow intensity={1.2} dayShare={0.3} />
       </mesh>
       <Worklight />
       {/* Hoist cables down to each module */}

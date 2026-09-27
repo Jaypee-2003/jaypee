@@ -1,22 +1,27 @@
-import React, { useLayoutEffect, useMemo } from 'react';
-import { useThree } from '@react-three/fiber';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   BoxGeometry,
   BufferGeometry,
   Color,
   CylinderGeometry,
+  DirectionalLight,
   EdgesGeometry,
   Fog,
+  HemisphereLight,
   LineBasicMaterial,
   Matrix4,
+  MeshStandardMaterial,
   PlaneGeometry,
   ShaderMaterial,
+  Vector3,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PAL, Paint } from './palette';
 import { FOG } from './fog';
 import { asphaltNoise } from './textures';
 import { Box, Halos, Pools, Stacks } from './props';
+import { DAY_SKY, daylight, LampGlow, lampShare, NIGHT_SKY } from './daylight';
 
 // The yard around the stops: ground, lanes, stacked cargo, lamp poles, cranes, the quay and the sky glow.
 
@@ -129,7 +134,7 @@ const Poles: React.FC = () => {
         <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.5} />
       </mesh>
       <mesh geometry={lamps}>
-        <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={1.1} toneMapped={false} />
+        <LampGlow intensity={1.1} />
       </mesh>
       <Halos points={heads.map((at) => ({ at, size: 2.6 }))} strength={0.5} />
       <Pools pools={heads.map(([x, , z]) => ({ at: [x, z] as [number, number], radius: 8 }))} />
@@ -205,7 +210,23 @@ const Cranes: React.FC = () => {
 
 const QUAY_Z = -201;
 
+// Surfaces that only look this dark because the night is: by day they take their real colours
+const SURFACE = {
+  asphalt: { night: new Color(PAL.asphalt), day: new Color('#4B4F55') },
+  concrete: { night: new Color(PAL.concrete), day: new Color('#8A8A86') },
+  water: { night: new Color(PAL.water), day: new Color('#566674') },
+};
+
 const Ground: React.FC = () => {
+  const asphalt = useRef<MeshStandardMaterial>(null);
+  const concrete = useRef<MeshStandardMaterial>(null);
+  const water = useRef<MeshStandardMaterial>(null);
+  useFrame(() => {
+    const t = daylight.value;
+    asphalt.current?.color.lerpColors(SURFACE.asphalt.night, SURFACE.asphalt.day, t);
+    concrete.current?.color.lerpColors(SURFACE.concrete.night, SURFACE.concrete.day, t);
+    water.current?.color.lerpColors(SURFACE.water.night, SURFACE.water.day, t);
+  });
   const map = useMemo(() => {
     const t = asphaltNoise().clone();
     t.repeat.set(70, 70);
@@ -224,7 +245,7 @@ const Ground: React.FC = () => {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, 0, (60 + QUAY_Z) / 2]}>
         <planeGeometry args={[320, 60 - QUAY_Z]} />
-        <meshStandardMaterial color={PAL.asphalt} map={map} roughness={0.96} metalness={0} />
+        <meshStandardMaterial ref={asphalt} color={PAL.asphalt} map={map} roughness={0.96} metalness={0} />
       </mesh>
       <mesh geometry={dashes}>
         <meshStandardMaterial color={PAL.stencil} roughness={1} polygonOffset polygonOffsetFactor={-1} />
@@ -232,7 +253,7 @@ const Ground: React.FC = () => {
       {/* Quay edge and bollards */}
       <mesh position={[5, 0.25, QUAY_Z - 0.6]}>
         <boxGeometry args={[320, 0.5, 1.2]} />
-        <meshStandardMaterial color={PAL.concrete} roughness={0.9} />
+        <meshStandardMaterial ref={concrete} color={PAL.concrete} roughness={0.9} />
       </mesh>
       {[-14, -4, 6, 16, 26, 36].map((x) => (
         <mesh key={x} position={[x, 0.75, QUAY_Z - 0.6]}>
@@ -242,26 +263,28 @@ const Ground: React.FC = () => {
       ))}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, -1.4, QUAY_Z - 300]}>
         <planeGeometry args={[900, 600]} />
-        <meshStandardMaterial color={PAL.water} roughness={0.22} metalness={0.7} />
+        <meshStandardMaterial ref={water} color={PAL.water} roughness={0.22} metalness={0.7} />
       </mesh>
     </group>
   );
 };
 
 // Sodium glow of a city past the water, low on the horizon. Not fogged: it's what the fog is lit by.
+// Gone by day, when the city's lights are off.
 const Horizon: React.FC = () => {
   const material = useMemo(
     () =>
       new ShaderMaterial({
-        uniforms: { uColor: { value: new Color(PAL.lamp) } },
+        uniforms: { uColor: { value: new Color(PAL.lamp) }, uNight: { value: 1 } },
         vertexShader: /* glsl */ `
           varying float vY;
           void main() { vY = uv.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
         `,
         fragmentShader: /* glsl */ `
           uniform vec3 uColor;
+          uniform float uNight;
           varying float vY;
-          void main() { gl_FragColor = vec4(uColor, pow(1.0 - vY, 3.0) * 0.16); }
+          void main() { gl_FragColor = vec4(uColor, pow(1.0 - vY, 3.0) * 0.16 * uNight); }
         `,
         transparent: true,
         depthWrite: false,
@@ -269,6 +292,9 @@ const Horizon: React.FC = () => {
       }),
     [],
   );
+  useFrame(() => {
+    material.uniforms.uNight.value = lampShare();
+  });
   return (
     <mesh position={[5, 50, -620]} material={material}>
       <planeGeometry args={[1800, 130]} />
@@ -276,24 +302,56 @@ const Horizon: React.FC = () => {
   );
 };
 
+// The two lights of the sky. Night: a cool fill and a low moon, so everything warm comes from the lamps.
+// Day: bright overcast fill and a high sun from over the left shoulder, lighting the faces along the route.
+const SKY = {
+  fill: { night: new Color('#5B6E90'), day: new Color('#DCE6EE') },
+  ground: { night: new Color('#10151E'), day: new Color('#6A6152') },
+  fillIntensity: { night: 1.7, day: 2.1 },
+  key: { night: new Color(PAL.moon), day: new Color('#FFF0D8') },
+  keyIntensity: { night: 1.1, day: 3.1 },
+  keyPosition: { night: new Vector3(-60, 80, 30), day: new Vector3(-50, 110, 70) },
+  background: { night: new Color(NIGHT_SKY), day: new Color(DAY_SKY) },
+};
+
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+
 export const Yard: React.FC = () => {
   const { scene } = useThree();
   const stacks = useMemo(buildStacks, []);
+  const fill = useRef<HemisphereLight>(null);
+  const key = useRef<DirectionalLight>(null);
+  const applied = useRef(-1);
 
   useLayoutEffect(() => {
-    scene.background = new Color(PAL.night);
-    scene.fog = new Fog(PAL.night, FOG.near, FOG.far);
+    scene.background = new Color(NIGHT_SKY);
+    scene.fog = new Fog(NIGHT_SKY, FOG.near, FOG.far);
+    applied.current = -1;
     return () => {
       scene.background = null;
       scene.fog = null;
     };
   }, [scene]);
 
+  // Sky, fog and the two sky lights follow the daylight
+  useFrame(() => {
+    const t = daylight.value;
+    if (t === applied.current || !fill.current || !key.current) return;
+    applied.current = t;
+    (scene.background as Color).lerpColors(SKY.background.night, SKY.background.day, t);
+    (scene.fog as Fog).color.lerpColors(SKY.background.night, SKY.background.day, t);
+    fill.current.color.lerpColors(SKY.fill.night, SKY.fill.day, t);
+    fill.current.groundColor.lerpColors(SKY.ground.night, SKY.ground.day, t);
+    fill.current.intensity = lerp(SKY.fillIntensity.night, SKY.fillIntensity.day, t);
+    key.current.color.lerpColors(SKY.key.night, SKY.key.day, t);
+    key.current.intensity = lerp(SKY.keyIntensity.night, SKY.keyIntensity.day, t);
+    key.current.position.lerpVectors(SKY.keyPosition.night, SKY.keyPosition.day, t);
+  });
+
   return (
     <>
-      {/* Night: a cool sky fill and a low moon; everything warm comes from the lamps */}
-      <hemisphereLight args={['#5B6E90', '#10151E', 1.7]} />
-      <directionalLight color={PAL.moon} intensity={1.1} position={[-60, 80, 30]} />
+      <hemisphereLight ref={fill} args={['#5B6E90', '#10151E', 1.7]} />
+      <directionalLight ref={key} color={PAL.moon} intensity={1.1} position={[-60, 80, 30]} />
       <Ground />
       <Stacks boxes={stacks} />
       <Poles />

@@ -1,5 +1,43 @@
 /* Fonts are loaded in public/index.html (Big Shoulders Display / Archivo).
-   Colours mirror src/styles/theme.ts so the first paint is already the night, not white. */
+
+   Page chrome (background, text, rules, the nav) is themed through the variables below: night by default,
+   day under <html data-theme="day"> (set by src/site/timeOfDay.ts). The signs themselves are physical
+   materials and keep their own colours in both. In the 3D view the page colour is the sky, so a placard
+   fading into the distance fades into the same colour as the fog. */
+
+:root {
+  --page: #0b121c;
+  --page-raised: #172234;
+  --bar: #0b121c;
+  --text: #ece4d2;
+  --text-muted: #b7b09f;
+  --text-dim: #8e8878;
+  --rule: rgba(236, 228, 210, 0.18);
+  --accent-text: #f0a13a;
+  --focus-ring: #f0a13a;
+  --shadow: none;
+  color-scheme: dark;
+}
+
+:root[data-theme='day'] {
+  --page: #ece7dc;
+  --page-raised: #e2dccf;
+  --bar: #f4f0e7;
+  --text: #0b121c;
+  --text-muted: #4f5563;
+  --text-dim: #5e6168;
+  --rule: rgba(11, 18, 28, 0.16);
+  --accent-text: #8f4a14;
+  --focus-ring: #0b121c;
+  /* signs standing in daylight cast a soft shadow on the page */
+  --shadow: 0 1px 2px rgba(11, 18, 28, 0.12), 0 22px 44px -26px rgba(11, 18, 28, 0.5);
+  color-scheme: light;
+}
+
+/* In the 3D view the page behind the placards is the daytime sky (keep in step with DAY_SKY in scene/daylight.ts) */
+:root[data-theme='day'][data-view='scene'] {
+  --page: #c9d4dc;
+}
 
 *,
 *::before,
@@ -10,15 +48,15 @@
 }
 
 html {
-  background: #0b121c;
-  color-scheme: dark;
+  background: var(--page);
   -webkit-text-size-adjust: 100%;
+  transition: background-color 0.9s ease;
 }
 
 body {
   font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-weight: 400;
-  color: #ece4d2;
+  color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -62,7 +100,7 @@ ol {
 }
 
 :focus-visible {
-  outline: 2px solid #f0a13a;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 

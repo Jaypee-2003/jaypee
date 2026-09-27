@@ -3,6 +3,7 @@ import { OperatorBoard, OPERATOR_BOARD } from '../../content/OperatorBoard';
 import { PAL } from '../palette';
 import { Placard } from '../Placard';
 import { Halos, Post } from '../props';
+import { LampGlow, LampPoint } from '../daylight';
 
 // A steel notice board by the lane with the operator's file on it, lit by a hooded lamp on an arm
 
@@ -30,9 +31,9 @@ export const Notice: React.FC = () => {
         </mesh>
         <mesh position={lamp} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[1.3, 0.3]} />
-          <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={1.1} toneMapped={false} side={2} />
+          <LampGlow intensity={1.1} side={2} />
         </mesh>
-        <pointLight position={[0, lamp[1] - 0.2, lamp[2] + 0.6]} color={PAL.lamp} intensity={30} distance={16} decay={2} />
+        <LampPoint position={[0, lamp[1] - 0.2, lamp[2] + 0.6]} color={PAL.lamp} intensity={30} distance={16} decay={2} />
         <Halos points={[{ at: lamp, size: 2.4 }]} strength={0.6} />
       </group>
       <Placard

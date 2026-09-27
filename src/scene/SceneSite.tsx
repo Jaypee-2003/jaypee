@@ -11,6 +11,7 @@ import { registerSlot } from './slots';
 import { FOV, POSES } from './rig';
 import { CameraRig } from './CameraRig';
 import { Yard } from './Environment';
+import { DaylightDriver } from './daylight';
 import { Gate } from './locations/Gate';
 import { Notice } from './locations/Notice';
 import { Bay } from './locations/Bay';
@@ -55,8 +56,8 @@ const Loading = styled.p`
   font-size: 15px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: ${theme.colors.boneDim};
-  background: ${theme.colors.ink};
+  color: ${theme.ui.textDim};
+  background: ${theme.ui.page};
   transition: opacity 0.6s ease-out;
 `;
 
@@ -105,6 +106,7 @@ const World: React.FC<{ still: StopId | null; onReady: () => void }> = ({ still,
 
   return (
     <>
+      <DaylightDriver />
       <CameraRig still={still} />
       <Yard />
       <Gate />
@@ -185,9 +187,11 @@ const SceneSite: React.FC<{ onFail: () => void }> = ({ onFail }) => {
             </Canvas>
           </SceneBoundary>
         )}
-        <Loading aria-hidden="true" style={{ opacity: shown ? 0 : 1, pointerEvents: 'none' }}>
-          Opening the yard
-        </Loading>
+        {!still && (
+          <Loading aria-hidden="true" style={{ opacity: shown ? 0 : 1, pointerEvents: 'none' }}>
+            Opening the yard
+          </Loading>
+        )}
       </Stage>
     </>
   );

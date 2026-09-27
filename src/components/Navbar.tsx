@@ -10,9 +10,11 @@ import { LocalTime } from '../content/kit';
 import { NavSection, SECTIONS, sectionForStop } from '../site/stops';
 import { scrollToStop, useActiveStop } from '../site/store';
 import { SiteModeState } from '../site/mode';
+import { setTimeOfDay, useTimeOfDay } from '../site/timeOfDay';
 
 // The nav is the yard's signal board: each section is a numbered stop with a lamp, the current stop's
-// lamp is lit, and a rail along the bottom fills as you travel the route. Solid ink, nothing translucent.
+// lamp is lit, and a rail along the bottom fills as you travel the route. Solid, nothing translucent:
+// ink by night, paper by day (colours are the themed --bar / --text variables in index.css).
 
 const breathe = keyframes`
   0%, 100% { opacity: 1; }
@@ -25,8 +27,8 @@ const lamp = (size: number) => `
   width: ${size}px;
   height: ${size}px;
   border-radius: 50%;
-  background: ${theme.colors.ink};
-  box-shadow: inset 0 0 0 1.5px ${theme.colors.boneDim};
+  background: ${theme.ui.bar};
+  box-shadow: inset 0 0 0 1.5px ${theme.ui.textDim};
   transition: background ${theme.transitions.fast}, box-shadow ${theme.transitions.fast};
 `;
 
@@ -41,7 +43,8 @@ const Nav = styled.nav`
   left: 0;
   right: 0;
   z-index: 1000;
-  background: ${theme.colors.ink};
+  background: ${theme.ui.bar};
+  transition: background-color 0.9s ease;
 `;
 
 const Bar = styled.div`
@@ -62,7 +65,7 @@ const Brand = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
-  color: ${theme.colors.bone};
+  color: ${theme.ui.text};
 
   img {
     display: block;
@@ -98,13 +101,27 @@ const Status = styled.span`
   line-height: 1;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: ${theme.colors.boneMuted};
+  white-space: nowrap;
+  color: ${theme.ui.textMuted};
 
   &::before {
     content: '';
     ${lamp(7)}
     ${lit}
     animation: ${breathe} 2.8s ease-in-out infinite;
+  }
+
+  /* small phones: the short form, so it stays on one line beside the buttons */
+  .short {
+    display: none;
+  }
+  @media (max-width: 440px) {
+    .full {
+      display: none;
+    }
+    .short {
+      display: inline;
+    }
   }
 `;
 
@@ -125,7 +142,7 @@ const Route = styled.ol`
     font-size: 0.95rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: ${theme.colors.boneMuted};
+    color: ${theme.ui.textMuted};
     transition: color ${theme.transitions.fast};
 
     i {
@@ -135,27 +152,27 @@ const Route = styled.ol`
     small {
       font-size: 0.72rem;
       letter-spacing: 0.06em;
-      color: ${theme.colors.boneDim};
+      color: ${theme.ui.textDim};
       transition: color ${theme.transitions.fast};
     }
 
     &:hover {
-      color: ${theme.colors.bone};
+      color: ${theme.ui.text};
 
       i {
-        box-shadow: inset 0 0 0 1.5px ${theme.colors.bone};
+        box-shadow: inset 0 0 0 1.5px ${theme.ui.text};
       }
     }
 
     &[aria-current] {
-      color: ${theme.colors.bone};
+      color: ${theme.ui.text};
 
       i {
         ${lit}
       }
 
       small {
-        color: ${theme.colors.amber};
+        color: ${theme.ui.accentText};
       }
     }
   }
@@ -177,12 +194,81 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   gap: 1.75rem;
+
+  @media (max-width: 900px) {
+    gap: 0.5rem;
+  }
 `;
+
+// Night / day. In the 3D view it changes the light in the yard; on the plain page, the theme.
+// Shows the current time of day: a moon at night, a sun by day.
+const TimeToggle = styled.button`
+  position: relative;
+  flex-shrink: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid ${theme.ui.rule};
+  background: none;
+  color: ${theme.ui.text};
+  cursor: pointer;
+  transition: border-color ${theme.transitions.fast};
+
+  svg {
+    grid-area: 1 / 1;
+    width: 18px;
+    height: 18px;
+    transition: opacity 0.35s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .sun {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+
+  &[data-time='day'] {
+    .sun {
+      opacity: 1;
+      transform: none;
+    }
+    .moon {
+      opacity: 0;
+      transform: rotate(90deg) scale(0.5);
+    }
+  }
+
+  &:hover {
+    border-color: ${theme.ui.textMuted};
+  }
+
+  @media (max-width: 900px) {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+`;
+
+const Moon: React.FC = () => (
+  <svg className="moon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z" fill="currentColor" />
+  </svg>
+);
+
+const Sun: React.FC = () => (
+  <svg className="sun" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.2" fill={theme.colors.amber} />
+    <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+        <line key={a} x1="12" y1="2.6" x2="12" y2="5" transform={`rotate(${a} 12 12)`} />
+      ))}
+    </g>
+  </svg>
+);
 
 // Two-way switch between the live 3D yard and the plain page
 const ViewSwitch = styled.div`
   display: inline-flex;
-  border: 1px solid ${theme.colors.ruleOnInk};
+  border: 1px solid ${theme.ui.rule};
 
   button {
     padding: 0.4rem 0.65rem;
@@ -193,17 +279,17 @@ const ViewSwitch = styled.div`
     font-size: 0.78rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: ${theme.colors.boneMuted};
+    color: ${theme.ui.textMuted};
     cursor: pointer;
     transition: color ${theme.transitions.fast}, background ${theme.transitions.fast};
 
     &:hover {
-      color: ${theme.colors.bone};
+      color: ${theme.ui.text};
     }
 
     &[aria-pressed='true'] {
-      background: ${theme.colors.bone};
-      color: ${theme.colors.ink};
+      background: ${theme.ui.text};
+      color: ${theme.ui.bar};
       cursor: default;
     }
   }
@@ -220,7 +306,7 @@ const Rail = styled.div`
   right: 0;
   bottom: 0;
   height: 2px;
-  background: ${theme.colors.ruleOnInk};
+  background: ${theme.ui.rule};
 
   span {
     display: block;
@@ -238,7 +324,7 @@ const MenuButton = styled.button`
   position: relative;
   width: 2.75rem;
   height: 2.75rem;
-  border: 1px solid ${theme.colors.ruleOnInk};
+  border: 1px solid ${theme.ui.rule};
   background: none;
   cursor: pointer;
 
@@ -248,7 +334,7 @@ const MenuButton = styled.button`
     top: 50%;
     width: 18px;
     height: 2px;
-    background: ${theme.colors.bone};
+    background: ${theme.ui.text};
     transition: transform ${theme.transitions.fast};
   }
   span:first-of-type {
@@ -281,8 +367,8 @@ const Sheet = styled(motion.div)`
   right: 0;
   bottom: 0;
   overflow-y: auto;
-  background: ${theme.colors.ink};
-  border-top: 1px solid ${theme.colors.ruleOnInk};
+  background: ${theme.ui.bar};
+  border-top: 1px solid ${theme.ui.rule};
   padding: 1.75rem ${theme.layout.gutter} 2rem;
 
   @media (max-width: 900px) {
@@ -297,7 +383,7 @@ const SheetLabel = styled.p`
   font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: ${theme.colors.boneDim};
+  color: ${theme.ui.textDim};
 `;
 
 // The stops as a route line: a lamp per stop on a vertical rail, the current one lit
@@ -312,7 +398,7 @@ const Stops = styled.ol`
     top: 1.6rem;
     bottom: 1.6rem;
     width: 1px;
-    background: ${theme.colors.ruleOnInk};
+    background: ${theme.ui.rule};
   }
 
   a {
@@ -321,7 +407,7 @@ const Stops = styled.ol`
     align-items: center;
     gap: 0.9rem;
     padding: 0.55rem 0;
-    color: ${theme.colors.boneMuted};
+    color: ${theme.ui.textMuted};
 
     i {
       ${lamp(11)}
@@ -333,7 +419,7 @@ const Stops = styled.ol`
       font-weight: 700;
       font-size: 0.85rem;
       letter-spacing: 0.06em;
-      color: ${theme.colors.boneDim};
+      color: ${theme.ui.textDim};
     }
 
     b {
@@ -351,22 +437,22 @@ const Stops = styled.ol`
       font-size: 0.72rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: ${theme.colors.amber};
+      color: ${theme.ui.accentText};
     }
 
     &:hover {
-      color: ${theme.colors.bone};
+      color: ${theme.ui.text};
     }
 
     &[aria-current] {
-      color: ${theme.colors.bone};
+      color: ${theme.ui.text};
 
       i {
         ${lit}
       }
 
       small {
-        color: ${theme.colors.amber};
+        color: ${theme.ui.accentText};
       }
     }
   }
@@ -375,7 +461,7 @@ const Stops = styled.ol`
 const SheetFoot = styled.div`
   margin-top: auto;
   padding-top: 1.5rem;
-  border-top: 1px solid ${theme.colors.ruleOnInk};
+  border-top: 1px solid ${theme.ui.rule};
   display: grid;
   gap: 1.1rem;
 
@@ -385,12 +471,12 @@ const SheetFoot = styled.div`
     align-items: center;
     gap: 0.4rem 0.6rem;
     font-size: 0.95rem;
-    color: ${theme.colors.bone};
+    color: ${theme.ui.text};
   }
 
   p span {
     font-size: 0.85rem;
-    color: ${theme.colors.boneMuted};
+    color: ${theme.ui.textMuted};
   }
 
   p::before {
@@ -406,8 +492,8 @@ const StartProject = styled(Link)`
   justify-content: space-between;
   align-items: center;
   padding: 0.95rem 1.15rem;
-  background: ${theme.colors.bone};
-  color: ${theme.colors.ink};
+  background: ${theme.ui.text};
+  color: ${theme.ui.bar};
   font-family: ${theme.fonts.display};
   font-weight: 800;
   font-size: 1.1rem;
@@ -416,19 +502,20 @@ const StartProject = styled(Link)`
 
   &:hover {
     background: ${theme.colors.amber};
+    color: ${theme.colors.ink};
   }
 `;
 
 const Email = styled.a`
   justify-self: start;
   font-size: 0.95rem;
-  color: ${theme.colors.boneMuted};
+  color: ${theme.ui.textMuted};
   text-decoration: underline;
-  text-decoration-color: ${theme.colors.amber};
+  text-decoration-color: ${theme.ui.accentText};
   text-underline-offset: 0.3em;
 
   &:hover {
-    color: ${theme.colors.bone};
+    color: ${theme.ui.text};
   }
 `;
 
@@ -439,6 +526,11 @@ const Navbar: React.FC<{ site: SiteModeState }> = ({ site }) => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const location = useLocation();
   const current = sectionForStop(useActiveStop());
+  const time = useTimeOfDay();
+  const nextTime = time === 'night' ? 'day' : 'night';
+  // Named for what it changes: the light in the 3D yard, the theme on the plain page
+  const timeLabel =
+    site.mode === 'scene' ? `Switch to ${nextTime}` : `Switch to ${nextTime === 'day' ? 'light' : 'dark'} theme`;
   const still = useReducedMotion();
   const rail = useRef<HTMLSpanElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -519,7 +611,12 @@ const Navbar: React.FC<{ site: SiteModeState }> = ({ site }) => {
           <img src={jpMark} alt="" width={132} height={102} />
           <BrandText>
             <strong>JAYPEE</strong>
-            <Status>{availability.status}</Status>
+            <Status>
+              <span className="full">{availability.status}</span>
+              <span className="short" aria-hidden="true">
+                Available for work
+              </span>
+            </Status>
           </BrandText>
         </Brand>
 
@@ -550,6 +647,17 @@ const Navbar: React.FC<{ site: SiteModeState }> = ({ site }) => {
               </button>
             </ViewSwitch>
           )}
+
+          <TimeToggle
+            type="button"
+            data-time={time}
+            onClick={() => setTimeOfDay(nextTime)}
+            aria-label={timeLabel}
+            title={timeLabel}
+          >
+            <Moon />
+            <Sun />
+          </TimeToggle>
 
           <MenuButton
             ref={menuButton}

@@ -11,6 +11,7 @@ import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
 import { Placard } from '../Placard';
 import { Halos, Paint, Post } from '../props';
+import { LampGlow, LampPoint } from '../daylight';
 
 // The end of the line: the dispatch office on the quay, water and cranes behind it. The window carries
 // the hire details, the order slip on the stand in front is the contact form, and the education plaque
@@ -34,12 +35,12 @@ const LitWindow: React.FC = () => (
     </mesh>
     <mesh position={[0, 0, 0.09]}>
       <planeGeometry args={[WINDOW.width, windowHeight]} />
-      <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={0.32} toneMapped={false} />
+      <LampGlow intensity={0.32} dayShare={0.05} dayColor="#3F4C58" />
     </mesh>
     {SLATS.map((i) => (
       <mesh key={i} position={[0, windowHeight / 2 - 0.12 - i * 0.19, 0.1]}>
         <planeGeometry args={[WINDOW.width, 0.1]} />
-        <meshStandardMaterial color="#6B4A22" emissive="#6B4A22" emissiveIntensity={0.35} toneMapped={false} />
+        <LampGlow color="#6B4A22" intensity={0.35} dayShare={0.05} dayColor="#B9B2A2" />
       </mesh>
     ))}
     {[-WINDOW.width / 6, WINDOW.width / 6].map((x) => (
@@ -74,10 +75,10 @@ export const Dispatch: React.FC = () => {
       </mesh>
       <mesh position={roofLamp}>
         <sphereGeometry args={[0.2, 16, 10]} />
-        <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={1.2} toneMapped={false} />
+        <LampGlow intensity={1.2} />
       </mesh>
       <Halos points={[{ at: roofLamp, size: 3 }]} strength={0.8} />
-      <pointLight position={[CABIN.x, 5.4, FRONT_Z + 6]} color={PAL.lamp} intensity={55} distance={24} decay={2} />
+      <LampPoint position={[CABIN.x, 5.4, FRONT_Z + 6]} color={PAL.lamp} intensity={55} distance={24} decay={2} />
 
       {stillStop && <LitWindow />}
       <Placard

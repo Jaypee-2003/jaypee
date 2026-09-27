@@ -14,7 +14,7 @@ import { stillStop } from '../site/mode';
 //    depth, perspective and scale with camera distance.
 //  • occlude="blending" puts the DOM *behind* a transparent canvas and punches a hole for it with an
 //    invisible plane, so anything in front of the sign — a container, a crane leg — covers it per pixel.
-//    The hole shows the page, which is the same ink as the sky and fog; the sign's own backing block
+//    The hole shows the page, which is the same colour as the sky and fog; the sign's own backing block
 //    (below) gives it edges and thickness in the scene.
 //  • Signs are sized so they read 1:1 (CSS px ≈ screen px) from the stop the camera rests at.
 //  • Every placard stays mounted and displayed, in route order, so keyboard focus order is the route;
@@ -53,7 +53,8 @@ export const Placard: React.FC<PlacardProps> = ({ stop, size, width, position, r
   const border = frame?.border ?? 0.06;
   const depth = frame?.depth ?? 0.08;
 
-  // The DOM isn't fogged, so fade it the way the fog fades geometry: toward the page's ink, which is the fog colour
+  // The DOM isn't fogged, so fade it the way the fog fades geometry: toward the page behind it, which is the
+  // sky and fog colour (night ink, or the day sky — see --page in index.css)
   useFrame(({ camera }) => {
     if (!anchor.current || !content.current) return;
     anchor.current.getWorldPosition(world);

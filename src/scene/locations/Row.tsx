@@ -6,6 +6,7 @@ import { Placard } from '../Placard';
 import { Container, IdMark, Paint, Post } from '../props';
 import { StopId } from '../../site/stops';
 import { stillStop } from '../../site/mode';
+import { LampPoint } from '../daylight';
 
 // The project row: one two-high stack per project along the right of the lane, long sides facing it.
 // The project's name is painted along the top container; its manifest stands on a tally board in front.
@@ -64,7 +65,7 @@ export const Row: React.FC = () => (
       );
     })}
     {ROW_LIGHTS.map((i) => (
-      <pointLight key={i} position={[13.5, 7.5, fileZ(i)]} color={PAL.lamp} intensity={110} distance={30} decay={2} />
+      <LampPoint key={i} position={[13.5, 7.5, fileZ(i)]} color={PAL.lamp} intensity={110} distance={30} decay={2} />
     ))}
   </group>
 );

@@ -17,6 +17,19 @@ export const theme = {
     ruleOnBone: 'rgba(11, 18, 28, 0.22)',
   },
 
+  // Page chrome, themed by night / day (values in src/index.css). Signs use `colors` — they're materials.
+  ui: {
+    page: 'var(--page)',
+    pageRaised: 'var(--page-raised)',
+    bar: 'var(--bar)',
+    text: 'var(--text)',
+    textMuted: 'var(--text-muted)',
+    textDim: 'var(--text-dim)',
+    rule: 'var(--rule)',
+    accentText: 'var(--accent-text)',
+    shadow: 'var(--shadow)',
+  },
+
   fonts: {
     // Big Shoulders: condensed industrial capitals. Its stencil cut is used for paint on steel in the 3D scene.
     display: `'Big Shoulders Display', 'Arial Narrow', sans-serif`,
