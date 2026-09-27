@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/jp-logo.jpg" alt="JP monogram: dark letters rim-lit in amber" width="300" />
+<img src=".github/assets/jp-logo.png" alt="JP monogram: dark letters rim-lit in amber" width="280" />
 
 # JAYPEE
 
