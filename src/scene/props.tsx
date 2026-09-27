@@ -190,7 +190,7 @@ export const Stacks: React.FC<{ boxes: Box[] }> = ({ boxes }) => {
 // Light adds colour and leaves alpha alone. Where a placard shows through the canvas (alpha 0), the
 // premultiplied colour composites *onto* the DOM — lamp glow falls across the sign — instead of
 // turning the sprite's square opaque.
-const additiveLight = {
+export const additiveLight = {
   blending: CustomBlending,
   blendSrc: OneFactor,
   blendDst: OneFactor,
@@ -222,10 +222,13 @@ const haloFragment = /* glsl */ `
 `;
 
 // Halos are the glow of a lamp in night air: they fade out by day
-export const Halos: React.FC<{ points: { at: [number, number, number]; size: number }[]; strength?: number }> = ({
-  points,
-  strength = 0.55,
-}) => {
+export const Halos: React.FC<{
+  points: { at: [number, number, number]; size: number }[];
+  strength?: number;
+  color?: string;
+  // Share of the glow left by day (signals stay lit; street lamps go out)
+  dayShare?: number;
+}> = ({ points, strength = 0.55, color = PAL.lamp, dayShare = 0 }) => {
   const { size, camera, gl } = useThree();
   const geometry = useMemo(() => {
     const g = new BufferGeometry();
@@ -240,7 +243,7 @@ export const Halos: React.FC<{ points: { at: [number, number, number]; size: num
         fragmentShader: haloFragment,
         uniforms: {
           uMap: { value: radialGlow() },
-          uColor: { value: new Color(PAL.lamp) },
+          uColor: { value: new Color(color) },
           uStrength: { value: strength },
           uScale: { value: 1 },
         },
@@ -248,13 +251,13 @@ export const Halos: React.FC<{ points: { at: [number, number, number]; size: num
         depthWrite: false,
         ...additiveLight,
       }),
-    [strength],
+    [strength, color],
   );
   // World size → pixels at unit distance, for the current viewport height and FOV
   const fov = (camera as PerspectiveCamera).fov;
   material.uniforms.uScale.value = (size.height * gl.getPixelRatio()) / (2 * Math.tan((fov * Math.PI) / 360));
   useFrame(() => {
-    material.uniforms.uStrength.value = strength * lampShare();
+    material.uniforms.uStrength.value = strength * lampShare(dayShare);
   });
   return <points geometry={geometry} material={material} frustumCulled={false} />;
 };

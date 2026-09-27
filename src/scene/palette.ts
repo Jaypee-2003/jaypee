@@ -20,6 +20,7 @@ export const PAL = {
   stencil: '#E6DDC8', // bone paint on steel
   stencilDark: '#151C28', // ink paint on bone containers
   lamp: '#FFA53D', // sodium amber, emissive
+  warning: '#E4472C', // obstruction lights and barrier stripes: the one red, used sparingly
   moon: '#A9B8CF',
   wire: '#3A3D45', // steel lattice drawn as wireframe
 };

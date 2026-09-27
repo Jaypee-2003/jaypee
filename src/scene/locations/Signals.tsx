@@ -51,6 +51,8 @@ export const Signals: React.FC = () => {
       g.skills.forEach((_, k) => {
         const at: [number, number, number] = [x - PLATE_W / 2 + 0.34, lampY(k), Z + 0.6];
         lensParts.push(new CylinderGeometry(0.15, 0.15, 0.06, 18).rotateX(Math.PI / 2).translate(...at));
+        // Bezel ring around each lens
+        plateParts.push(new CylinderGeometry(0.2, 0.2, 0.05, 20).rotateX(Math.PI / 2).translate(at[0], at[1], at[2] - 0.02));
         // Visor over each lens
         plateParts.push(new BoxGeometry(0.4, 0.04, 0.22).translate(at[0], at[1] + 0.2, at[2] + 0.08));
         lampPoints.push({ at: [at[0], at[1], at[2] + 0.05], size: 0.95 });
@@ -79,7 +81,9 @@ export const Signals: React.FC = () => {
       <mesh geometry={lenses}>
         <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={1.15} toneMapped={false} />
       </mesh>
-      <Halos points={lamps} strength={0.55} />
+      {/* Signals stay lit by day, so a little of their glow stays too */}
+      <Halos points={lamps.map((l) => ({ at: l.at, size: 0.42 }))} strength={0.9} dayShare={0.35} />
+      <Halos points={lamps} strength={0.5} dayShare={0.12} />
       <LampPoint position={[CENTER_X, 5, Z + 4]} color={PAL.lamp} intensity={70} dayShare={0.25} distance={20} decay={2} />
 
       {skillGroups.map((g, i) => {

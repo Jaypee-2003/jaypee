@@ -124,10 +124,22 @@ export const Gate: React.FC = () => (
       <planeGeometry args={[2.2, 1]} />
       <LampGlow intensity={0.7} dayShare={0.15} />
     </mesh>
+    {/* Barrier post, and the raised arm in bone and warning red */}
+    <mesh position={[9.6, 0.55, 7.4]}>
+      <boxGeometry args={[0.36, 1.1, 0.36]} />
+      <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.4} />
+    </mesh>
     <group position={[9.6, 1.05, 7.4]} rotation={[0, 0, 1.25]}>
-      <mesh position={[3.2, 0, 0]}>
-        <boxGeometry args={[6.4, 0.14, 0.14]} />
-        <meshStandardMaterial color={PAL.stencil} roughness={0.7} />
+      {Array.from({ length: 8 }, (_, i) => (
+        <mesh key={i} position={[0.4 + i * 0.8, 0, 0]}>
+          <boxGeometry args={[0.8, 0.14, 0.14]} />
+          <meshStandardMaterial color={i % 2 ? PAL.warning : PAL.stencil} roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Counterweight */}
+      <mesh position={[-0.45, 0, 0]}>
+        <boxGeometry args={[0.6, 0.3, 0.3]} />
+        <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.4} />
       </mesh>
     </group>
   </group>

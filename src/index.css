@@ -16,6 +16,8 @@
   --accent-text: #f0a13a;
   --focus-ring: #f0a13a;
   --shadow: none;
+  /* What the top of the frame deepens into under the nav (space-separated RGB, for rgb(... / alpha)) */
+  --nav-scrim: 11 18 28;
   color-scheme: dark;
 }
 
@@ -31,12 +33,20 @@
   --focus-ring: #0b121c;
   /* signs standing in daylight cast a soft shadow on the page */
   --shadow: 0 1px 2px rgba(11, 18, 28, 0.12), 0 22px 44px -26px rgba(11, 18, 28, 0.5);
+  --nav-scrim: 236 231 220;
   color-scheme: light;
+}
+
+/* Over the 3D yard the nav dissolves into the sky: a deeper night toward the zenith, bright haze by day
+   (both sampled from the rendered sky just under the nav) */
+:root[data-view='scene'] {
+  --nav-scrim: 4 7 13;
 }
 
 /* In the 3D view the page behind the placards is the daytime sky (keep in step with DAY_SKY in scene/daylight.ts) */
 :root[data-theme='day'][data-view='scene'] {
   --page: #c9d4dc;
+  --nav-scrim: 214 220 226;
 }
 
 *,

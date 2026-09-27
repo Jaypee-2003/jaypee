@@ -11,6 +11,7 @@ import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
 import { Placard } from '../Placard';
 import { Halos, Paint, Post } from '../props';
+import { Beams } from '../lights';
 import { LampGlow, LampPoint } from '../daylight';
 
 // The end of the line: the dispatch office on the quay, water and cranes behind it. The window carries
@@ -24,6 +25,46 @@ const SLIP = { at: [13.9, 1.9, -190.4] as [number, number, number], rotY: -0.3, 
 const slipHeight = (SLIP.width * ORDER_SLIP.height) / ORDER_SLIP.width;
 const PLAQUE = { at: [12.4, 4.35, FRONT_Z + 0.02] as [number, number, number], width: 2.4 };
 const windowHeight = (WINDOW.width * DISPATCH_WINDOW.height) / DISPATCH_WINDOW.width;
+
+// Gooseneck sign lamps either side of the DISPATCH lettering: an arm out from the wall, a dark shade,
+// and a warm lens under it washing the wall and the letters
+const GOOSENECK_X = [WINDOW.at[0] - 2.2, WINDOW.at[0] + 2.2];
+const GOOSENECK = { y: 5.95, out: 0.62 };
+const Goosenecks: React.FC = () => (
+  <group>
+    {GOOSENECK_X.map((x) => (
+      <group key={x} position={[x, GOOSENECK.y, FRONT_Z]}>
+        <mesh position={[0, 0, 0.04]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.06, 14]} />
+          <meshStandardMaterial color={PAL.paint.dark} roughness={0.5} metalness={0.6} />
+        </mesh>
+        <mesh position={[0, 0.06, GOOSENECK.out / 2]} rotation={[Math.PI / 2 - 0.25, 0, 0]}>
+          <cylinderGeometry args={[0.025, 0.025, GOOSENECK.out, 8]} />
+          <meshStandardMaterial color={PAL.paint.dark} roughness={0.5} metalness={0.6} />
+        </mesh>
+        <mesh position={[0, 0.02, GOOSENECK.out]} rotation={[-0.35, 0, 0]}>
+          <cylinderGeometry args={[0.07, 0.26, 0.2, 20, 1, true]} />
+          <meshStandardMaterial color="#1B2029" roughness={0.45} metalness={0.6} side={2} />
+        </mesh>
+        <mesh position={[0, -0.075, GOOSENECK.out + 0.035]} rotation={[-0.35, 0, 0]}>
+          <cylinderGeometry args={[0.24, 0.24, 0.01, 20]} />
+          <LampGlow intensity={1.4} />
+        </mesh>
+        <LampPoint position={[0, -0.25, GOOSENECK.out + 0.2]} color={PAL.lamp} intensity={9} distance={4.5} decay={2} />
+      </group>
+    ))}
+    <Halos points={GOOSENECK_X.map((x) => ({ at: [x, GOOSENECK.y - 0.1, FRONT_Z + GOOSENECK.out + 0.05] as [number, number, number], size: 0.8 }))} strength={0.9} />
+    <Beams
+      beams={GOOSENECK_X.map((x) => ({
+        top: [x, GOOSENECK.y - 0.08, FRONT_Z + GOOSENECK.out + 0.04] as [number, number, number],
+        length: 1.1,
+        radius: 0.75,
+        tilt: [-0.35, 0] as [number, number],
+      }))}
+      strength={0.22}
+    />
+  </group>
+);
 
 // In the still photograph the window has no lettering: it's lit from inside, blinds half drawn
 const SLATS = Array.from({ length: 11 }, (_, i) => i);
@@ -65,6 +106,7 @@ export const Dispatch: React.FC = () => {
         <boxGeometry args={[CABIN.w + 0.6, 0.16, CABIN.d + 0.8]} />
         <meshStandardMaterial color={PAL.paint.dark} roughness={0.7} />
       </mesh>
+      <Goosenecks />
       <Paint position={[WINDOW.at[0], CABIN.h - 0.5, FRONT_Z + 0.02]} fontSize={0.72} color={PAL.stencilDark}>
         DISPATCH
       </Paint>

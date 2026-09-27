@@ -88,6 +88,8 @@ Three colours, each used for what it is in the yard. None of them are decoration
   - [Archivo](https://fonts.google.com/specimen/Archivo) for reading.
 - **Materials:** cargo is matte corrugated steel, weathered with road dirt and rust streaks, with real container structure: corner posts and castings, rails, and door ends with locking bars. Lamps are emissive with real point lights and spotlights, and crane lattice is drawn as wireframe. Glow comes from light in the scene, not CSS shadows.
 - **Sky and shadows:** a procedural sky with the sun and cumulus by day, and stars, the moon and thin moonlit clouds by night. The sun or moon casts real shadows that follow the camera, and the floodlights cast their own at night.
+- **Lamps:** street lamps are proper luminaires (a housing with a glowing lens) with a beam of light in the night air and a pool on the ground. The gantry's signal lamps have bezels and hot cores, the cranes carry red obstruction lights, gooseneck lamps light the DISPATCH sign, and a city glows across the water.
+- **The nav belongs to the scene:** there's no bar. The top of the frame deepens into the sky, and the sections sit in it as stations on a route line. The line fills with amber as you travel, stations you've passed stay lit, and at night the current one glows.
 - **Between the stops:** a working yard. Jersey barriers, cones, pallets, crates and drums, a reach stacker lifting a box, lane lines, crossings, arrows and bay codes painted on the asphalt, and wet patches that catch the lamps at night.
 - **Surfaces:** every sign is a solid physical object: enamel, steel, a lightbox, paper, a lit window. Nothing is translucent or blurred.
 

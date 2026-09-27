@@ -14,6 +14,7 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   ShaderMaterial,
+  SphereGeometry,
   Vector3,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -24,6 +25,7 @@ import { Box, Halos, Pools, Stacks } from './props';
 import { DAY_SKY, daylight, LampGlow, lampShare, MOON_DIR, NIGHT_SKY, SUN_DIR } from './daylight';
 import { Sky } from './Sky';
 import { Yardwork } from './Yardwork';
+import { Beams, City } from './lights';
 
 // The yard around the stops: ground, lanes, stacked cargo, lamp poles, cranes, the quay and the sky glow.
 
@@ -115,31 +117,71 @@ const POLE_HEIGHT = 11;
 // Lamp heads lean out over the lane
 const HEADS = POLES.map(([x, z]) => [x + (x < 8 ? 1.2 : -1.2), POLE_HEIGHT - 0.3, z] as [number, number, number]);
 
+// Each head: a dark tapered housing on the arm, its lens a glowing panel on the underside, tilted a
+// little toward the lane. Light shows as a beam in the night air and a pool on the ground below.
+const HEAD_TILT = 0.12;
+
 const Poles: React.FC = () => {
-  // Every pole is merged into two meshes: the steel, and the lit lamp heads
-  const [steel, lamps] = useMemo(
-    () => [
+  // Merged into three meshes: steel, housings, and the lit lenses
+  const [steel, housings, lenses] = useMemo(() => {
+    const toward = (x: number): number => (x < 8 ? 1 : -1);
+    return [
       mergeGeometries(
         POLES.flatMap(([x, z], i) => [
-          new CylinderGeometry(0.09, 0.13, POLE_HEIGHT, 8).translate(x, POLE_HEIGHT / 2, z),
-          new BoxGeometry(1.4, 0.12, 0.3).translate((x + HEADS[i][0]) / 2, POLE_HEIGHT - 0.1, z),
+          new CylinderGeometry(0.09, 0.14, POLE_HEIGHT, 10).translate(x, POLE_HEIGHT / 2, z),
+          // Base plate and a collar where the arm meets the pole
+          new CylinderGeometry(0.28, 0.3, 0.12, 12).translate(x, 0.06, z),
+          new CylinderGeometry(0.13, 0.13, 0.3, 10).translate(x, POLE_HEIGHT - 0.15, z),
+          new BoxGeometry(1.25, 0.09, 0.12).translate((x + HEADS[i][0]) / 2 - toward(x) * 0.2, POLE_HEIGHT - 0.08, z),
+          // Brace under the arm
+          new BoxGeometry(0.06, 0.06, 0.7)
+            .rotateY(Math.PI / 2)
+            .rotateZ(toward(x) * 0.6)
+            .translate(x + toward(x) * 0.32, POLE_HEIGHT - 0.35, z),
         ]),
       ),
-      mergeGeometries(HEADS.map(([x, y, z]) => new BoxGeometry(0.7, 0.14, 0.4).translate(x, y, z))),
-    ],
+      mergeGeometries(
+        HEADS.map(([x, y, z]) =>
+          new BoxGeometry(0.86, 0.16, 0.44)
+            .rotateZ(-(x < 8 ? 1 : -1) * HEAD_TILT)
+            .translate(x, y + 0.1, z),
+        ),
+      ),
+      mergeGeometries(
+        HEADS.map(([x, y, z]) =>
+          new BoxGeometry(0.66, 0.03, 0.3)
+            .rotateZ(-(x < 8 ? 1 : -1) * HEAD_TILT)
+            .translate(x, y + 0.005, z),
+        ),
+      ),
+    ];
+  }, []);
+  const beams = useMemo(
+    () =>
+      HEADS.map(([x, y, z]) => ({
+        top: [x, y - 0.02, z] as [number, number, number],
+        length: y,
+        radius: 2.4,
+        tilt: [0, (x < 8 ? 1 : -1) * HEAD_TILT] as [number, number],
+      })),
     [],
   );
-  const heads = HEADS;
   return (
     <group>
       <mesh geometry={steel}>
         <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.5} />
       </mesh>
-      <mesh geometry={lamps}>
-        <LampGlow intensity={1.1} />
+      <mesh geometry={housings}>
+        <meshStandardMaterial color="#20262F" roughness={0.45} metalness={0.6} />
       </mesh>
-      <Halos points={heads.map((at) => ({ at, size: 2.6 }))} strength={0.5} />
-      <Pools pools={heads.map(([x, , z]) => ({ at: [x, z] as [number, number], radius: 8 }))} />
+      <mesh geometry={lenses} userData={{ noShadow: true }}>
+        <LampGlow intensity={1.35} />
+      </mesh>
+      <Beams beams={beams} strength={0.16} />
+      {/* A hot core right at the lens and a wide soft glow around it */}
+      <Halos points={HEADS.map((at) => ({ at: [at[0], at[1] - 0.05, at[2]] as [number, number, number], size: 0.9 }))} strength={1} />
+      <Halos points={HEADS.map((at) => ({ at, size: 3.4 }))} strength={0.38} />
+      <Pools pools={HEADS.map(([x, , z]) => ({ at: [x, z] as [number, number], radius: 8 }))} />
     </group>
   );
 };
@@ -195,15 +237,30 @@ const Cranes: React.FC = () => {
     [],
   );
   const material = useMemo(() => new LineBasicMaterial({ color: PAL.wire }), []);
-  // Warning lamps on the crane tops and boom tips
-  const warnings = CRANES_AT.flatMap((cx) => [
-    { at: [cx, 58.8, -200] as [number, number, number], size: 3 },
-    { at: [cx, 38.9, -264] as [number, number, number], size: 3 },
-  ]);
+  // Red obstruction lights: the A-frame peak, both ends of the boom, and the top of each leg
+  const warnings = useMemo(
+    () =>
+      CRANES_AT.flatMap((cx) => [
+        [cx, 58.8, -200],
+        [cx, 38.9, -264],
+        [cx, 38.9, -188],
+        [cx - 8, 36.3, -194],
+        [cx + 8, 36.3, -194],
+      ]) as [number, number, number][],
+    [],
+  );
+  const bulbs = useMemo(
+    () => mergeGeometries(warnings.map((at) => new SphereGeometry(0.35, 12, 8).translate(...at))),
+    [warnings],
+  );
   return (
     <group>
       <lineSegments geometry={geometry} material={material} />
-      <Halos points={warnings} strength={0.8} />
+      <mesh geometry={bulbs} userData={{ noShadow: true }}>
+        <LampGlow intensity={1.6} dayShare={0.35} color={PAL.warning} />
+      </mesh>
+      <Halos points={warnings.map((at) => ({ at, size: 2.2 }))} strength={1} color={PAL.warning} dayShare={0.15} />
+      <Halos points={warnings.map((at) => ({ at, size: 7 }))} strength={0.3} color={PAL.warning} />
     </group>
   );
 };
@@ -423,6 +480,7 @@ export const Yard: React.FC = () => {
       <Poles />
       <Cranes />
       <Horizon />
+      <City />
       <Yardwork />
     </>
   );
