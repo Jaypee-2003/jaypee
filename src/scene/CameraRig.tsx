@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import { StopId } from '../site/stops';
-import { lookCurve, paramAtVh, paramForStop, posCurve } from './rig';
+import { lookCurve, paramAtVh, posCurve, stillPose } from './rig';
 
 const pos = new Vector3();
 const look = new Vector3();
@@ -32,11 +32,19 @@ export const CameraRig: React.FC<{ still: StopId | null }> = ({ still }) => {
   }, [invalidate, still]);
 
   useFrame((_, delta) => {
+    // A still is a fixed photograph: its own pose, no track, no sway
+    if (still) {
+      const pose = stillPose(still);
+      camera.position.set(...pose.pos);
+      camera.lookAt(...pose.look);
+      return;
+    }
+
     const dt = Math.min(delta, 0.1);
-    const target = still ? paramForStop(still) : paramAtVh(window.scrollY / window.innerHeight);
+    const target = paramAtVh(window.scrollY / window.innerHeight);
 
     // Frame-rate independent damping toward the scroll position: the camera glides, never jumps
-    if (u.current === null || still) u.current = target;
+    if (u.current === null) u.current = target;
     else u.current += (target - u.current) * (1 - Math.exp(-dt * 3.4));
     const travelling = Math.abs(target - u.current) > 1e-5;
     if (!travelling) u.current = target;
@@ -51,16 +59,13 @@ export const CameraRig: React.FC<{ still: StopId | null }> = ({ still }) => {
     camera.lookAt(look);
 
     // A little hand-held sway toward the pointer, in camera space
-    let swaying = false;
-    if (!still) {
-      const k = 1 - Math.exp(-dt * 4);
-      sway.current.x += (pointer.current.x - sway.current.x) * k;
-      sway.current.y += (pointer.current.y - sway.current.y) * k;
-      swaying =
-        Math.abs(pointer.current.x - sway.current.x) > 0.002 || Math.abs(pointer.current.y - sway.current.y) > 0.002;
-      camera.translateX(sway.current.x * 0.22);
-      camera.translateY(-sway.current.y * 0.12);
-    }
+    const k = 1 - Math.exp(-dt * 4);
+    sway.current.x += (pointer.current.x - sway.current.x) * k;
+    sway.current.y += (pointer.current.y - sway.current.y) * k;
+    const swaying =
+      Math.abs(pointer.current.x - sway.current.x) > 0.002 || Math.abs(pointer.current.y - sway.current.y) > 0.002;
+    camera.translateX(sway.current.x * 0.22);
+    camera.translateY(-sway.current.y * 0.12);
 
     if (travelling || swaying) invalidate();
   });

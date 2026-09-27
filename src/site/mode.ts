@@ -47,7 +47,8 @@ const lowEnd = (): boolean => {
   );
 };
 
-// `?still=<stop>` renders one location for the still-image script (scripts/render-stills.js)
+// `?still=<stop>` renders one location as a clean photograph for the plain view (scripts/render-stills.js):
+// its own camera framing, and none of the signs — the words are on the page below the picture instead
 export const stillStop = new URLSearchParams(window.location.search).get('still');
 
 export interface SiteModeState {

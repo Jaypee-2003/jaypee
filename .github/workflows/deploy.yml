@@ -1,0 +1,43 @@
+# Builds the site on every push to main and publishes it to the gh-pages branch, which GitHub Pages
+# serves at https://jaypee-2003.github.io/jaypee. Can also be run by hand from the Actions tab.
+#
+# The plain view's location photos (public/stills) are committed images, not built here: after changing
+# the 3D scene, re-render them locally with `npm run build && npm run stills` and commit the result.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# A newer push supersedes a deploy that's still running
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # CI=true makes warnings fail the build, the same check as locally
+      - run: npm run build
+        env:
+          CI: true
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          commit_message: 'Deploy ${{ github.sha }}'

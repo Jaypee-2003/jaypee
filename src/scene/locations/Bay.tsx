@@ -4,6 +4,7 @@ import { BoxGeometry, BufferGeometry, EdgesGeometry, LineBasicMaterial, Object3D
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { experience } from '../../data/profile';
 import { CaseLightbox, CASE_LIGHTBOX } from '../../content/CaseLightbox';
+import { stillStop } from '../../site/mode';
 import { PAL, Paint as PaintName } from '../palette';
 import { Placard } from '../Placard';
 import { Container, IdMark, Paint, Post } from '../props';
@@ -116,12 +117,14 @@ export const Bay: React.FC = () => {
       ))}
 
       {/* The lightbox, on legs, spilling its light onto the lane */}
-      <group position={LIGHTBOX.at} rotation={[0, LIGHTBOX.rotY, 0]}>
-        {[-LIGHTBOX.width / 2 + 0.35, LIGHTBOX.width / 2 - 0.35].map((x) => (
-          <Post key={x} from={[x, -LIGHTBOX.at[1], -0.2]} height={LIGHTBOX.at[1] - lightboxHeight / 2 + 0.2} radius={0.09} />
-        ))}
-        <pointLight position={[0, -0.5, 2.2]} color={PAL.lamp} intensity={45} distance={14} decay={2} />
-      </group>
+      {!stillStop && (
+        <group position={LIGHTBOX.at} rotation={[0, LIGHTBOX.rotY, 0]}>
+          {[-LIGHTBOX.width / 2 + 0.35, LIGHTBOX.width / 2 - 0.35].map((x) => (
+            <Post key={x} from={[x, -LIGHTBOX.at[1], -0.2]} height={LIGHTBOX.at[1] - lightboxHeight / 2 + 0.2} radius={0.09} />
+          ))}
+          <pointLight position={[0, -0.5, 2.2]} color={PAL.lamp} intensity={45} distance={14} decay={2} />
+        </group>
+      )}
       <Placard
         stop="bay"
         size={CASE_LIGHTBOX}

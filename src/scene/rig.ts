@@ -28,6 +28,20 @@ export const POSES: Record<string, Pose> = {
   dispatch: { pos: [11.9, 2.45, -183.2], look: [11.2, 2.9, -195.5] },
 };
 
+// Framing for the still photographs in the plain view. With no signs to read, each shot is composed
+// around the place itself; stops not listed here reuse their reading pose.
+const STILL_POSES: Partial<Record<StopId, Pose>> = {
+  gate: { pos: [-1.6, 1.9, 17], look: [-4.2, 4.3, -2] },
+  bay: { pos: [6.5, 3.1, -27], look: [-4.6, 3.4, -46] },
+  signals: { pos: [10.7, 2.6, -139], look: [10.7, 5.6, -160] },
+  dispatch: { pos: [12.5, 2.3, -176.5], look: [9.4, 3.4, -196] },
+  ...Object.fromEntries(
+    [0, 1, 2, 3, 4].map((i) => [`file-${i + 1}`, { pos: [9.4, 2.2, fileZ(i) + 9.5] as V3, look: [18.8, 3.3, fileZ(i) - 0.8] as V3 }]),
+  ),
+};
+
+export const stillPose = (id: StopId): Pose => STILL_POSES[id] ?? POSES[id];
+
 // Extra control points after a stop, in travel order
 const VIA: Partial<Record<StopId, Pose[]>> = {
   gate: [{ pos: [6.2, 2.3, 3], look: [11, 2.6, -14] }],

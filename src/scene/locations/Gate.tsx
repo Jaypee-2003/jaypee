@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Mesh, MeshStandardMaterial, Object3D, PointLight, SpotLight, Vector3 } from 'three';
 import { GateSign, GATE_SIGN } from '../../content/GateSign';
+import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
 import { Placard } from '../Placard';
 import { Container, Halos, IdMark, Paint, Post } from '../props';
@@ -91,11 +92,13 @@ export const Gate: React.FC = () => (
     </Container>
 
     {/* The gate sign on two legs, the status lamp on its top edge */}
-    <group position={SIGN.at} rotation={[0, SIGN.rotY, 0]}>
-      <Post from={[-SIGN.width / 2 + 0.35, -SIGN.at[1], -0.12]} height={SIGN.at[1] - signHeight / 2} radius={0.08} />
-      <Post from={[SIGN.width / 2 - 0.35, -SIGN.at[1], -0.12]} height={SIGN.at[1] - signHeight / 2} radius={0.08} />
-      <StatusLamp />
-    </group>
+    {!stillStop && (
+      <group position={SIGN.at} rotation={[0, SIGN.rotY, 0]}>
+        <Post from={[-SIGN.width / 2 + 0.35, -SIGN.at[1], -0.12]} height={SIGN.at[1] - signHeight / 2} radius={0.08} />
+        <Post from={[SIGN.width / 2 - 0.35, -SIGN.at[1], -0.12]} height={SIGN.at[1] - signHeight / 2} radius={0.08} />
+        <StatusLamp />
+      </group>
+    )}
     <Placard
       stop="gate"
       size={GATE_SIGN}

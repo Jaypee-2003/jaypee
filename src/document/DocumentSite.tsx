@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useLayoutEffect } from 'react';
+import React, { CSSProperties, ReactNode, useEffect, useLayoutEffect } from 'react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { projects } from '../data/profile';
@@ -11,81 +11,266 @@ import { Manifest } from '../content/Manifest';
 import { SkillsBoard } from '../content/SkillsBoard';
 import { DispatchWindow, EducationPlaque, OrderSlip } from '../content/Dispatch';
 
-// The same yard as an ordinary vertical page: a still render of each location, then what stands there.
-// For phones and tablets, reduced motion, low-end hardware, no WebGL — or anyone who picks "Plain view".
-// Nothing here is scroll-driven; the page scrolls like any document.
+// The yard as an ordinary page, laid out like a photo essay: a photograph of each place (rendered from
+// the 3D scene without its signs — see scripts/render-stills.js), and the same signs, manifests and
+// forms set as the readable page around it. For phones and tablets, reduced motion, low-end hardware,
+// no WebGL — or anyone who picks "Plain view". Nothing here is scroll-driven.
 
 const still = (id: StopId): string => `${process.env.PUBLIC_URL}/stills/${id}.jpg`;
 
-const ALT: Record<string, string> = {
-  gate: 'Night at the container terminal gate: "Jayprakash Behera" stencilled across two shipping containers under an amber floodlight, and the gate sign with its amber status lamp lit.',
-  notice: 'A steel notice board beside the lane, lit by a hooded lamp, carrying the operator file.',
-  bay: 'The loading bay: four containers labelled Inventory, Tasks, Vendors and Orders hang from one gantry beam marked "REST API · JWT + RBAC", piped into tanks marked Redis and MongoDB, beside an amber lightbox.',
-  signals:
-    'A signal gantry over the lane with six signal heads — Languages, Frontend, Backend, Mobile, Data, Cloud / DevOps — and an amber lamp lit for every skill.',
-  dispatch: 'The dispatch office at the end of the quay, its window lettered with hire details, an order slip on a stand in front and cranes over the water behind.',
-};
-const fileAlt = (title: string): string =>
-  `A two-high container stack with "${title}" painted along the top container and its manifest clipped to the one below.`;
+/* ───────────────────────── Layout ───────────────────────── */
 
 const Main = styled.main`
   padding-top: ${theme.layout.navHeight};
+  padding-bottom: clamp(4rem, 10vw, 8rem);
 `;
 
-const Place = styled.section`
+const Wrap = styled.div`
   max-width: ${theme.layout.max};
   margin: 0 auto;
-  padding: clamp(2rem, 6vw, 4.5rem) ${theme.layout.gutter} 0;
+  padding: 0 ${theme.layout.gutter};
+`;
+
+const Chapter = styled.section`
+  padding-top: clamp(4.5rem, 11vw, 8.5rem);
+  scroll-margin-top: ${theme.layout.navHeight};
+`;
+
+// "02 — Experience", with a rule running to the margin. Decorative: each placard carries the real heading.
+const Head = styled.p`
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  font-family: ${theme.fonts.display};
+  font-weight: 800;
+  text-transform: uppercase;
+
+  b {
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    color: ${theme.colors.amber};
+  }
+
+  span {
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: ${theme.colors.bone};
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    align-self: center;
+    height: 1px;
+    background: ${theme.colors.ruleOnInk};
+  }
+`;
+
+const ChapterHead: React.FC<{ n: number; label: string }> = ({ n, label }) => (
+  <Head aria-hidden="true">
+    <b>{String(n).padStart(2, '0')}</b>
+    <span>{label}</span>
+  </Head>
+);
+
+// A photograph of the place. Ratio and focal point are set per picture, with a squarer crop on phones.
+const Photo = styled.figure`
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--ratio, 16 / 9);
+    max-height: var(--max-height, none);
+    object-fit: cover;
+    object-position: var(--focus, 50% 50%);
+    background: ${theme.colors.inkRaised};
+  }
+
+  figcaption {
+    margin-top: 0.7rem;
+    font-family: ${theme.fonts.display};
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: ${theme.colors.boneDim};
+  }
+
+  /* where a placard overlaps the bottom of the picture, the caption goes above it instead */
+  &[data-caption='top'] {
+    display: flex;
+    flex-direction: column-reverse;
+
+    figcaption {
+      margin: 0 0 0.7rem;
+      text-align: right;
+    }
+  }
+
+  @media (max-width: 700px) {
+    img {
+      aspect-ratio: var(--ratio-sm, 4 / 3);
+    }
+  }
+`;
+
+// Each placard's wrapper is its size container, so it lays itself out for the room it has (content/kit.tsx)
+const Hold = styled.div`
+  container-type: inline-size;
+  position: relative;
+`;
+
+type PhotoProps = {
+  id: StopId;
+  alt: string;
+  caption: ReactNode;
+  ratio?: string;
+  ratioSm?: string;
+  focus?: string;
+  maxHeight?: string;
+  className?: string;
+  eager?: boolean;
+  captionTop?: boolean;
+};
+
+const Picture: React.FC<PhotoProps> = ({ id, alt, caption, ratio, ratioSm, focus, maxHeight, className, eager, captionTop }) => (
+  <Photo
+    className={className}
+    data-caption={captionTop ? 'top' : undefined}
+    style={
+      {
+        '--ratio': ratio,
+        '--ratio-sm': ratioSm,
+        '--focus': focus,
+        '--max-height': maxHeight,
+      } as CSSProperties
+    }
+  >
+    <img src={still(id)} alt={alt} loading={eager ? 'eager' : 'lazy'} width={1600} height={900} />
+    <figcaption>{caption}</figcaption>
+  </Photo>
+);
+
+/* ───────────────────────── Gate (hero) ───────────────────────── */
+
+const Hero = styled.section`
+  figure figcaption {
+    max-width: ${theme.layout.max};
+    margin-inline: auto;
+    padding: 0 ${theme.layout.gutter};
+    text-align: right;
+  }
+`;
+
+// The gate sign stands over the bottom edge of the photograph, as it stands in front of the stack
+const HeroSign = styled(Hold)`
+  max-width: 31rem;
+  margin-top: clamp(-11rem, -14vw, -2.5rem);
+  z-index: 1;
+`;
+
+/* ───────────────────────── Experience ───────────────────────── */
+
+// Photo and lightbox overlap like a collage: the lightbox sits across the photo's right edge
+const Collage = styled.div`
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+
+  > figure {
+    grid-column: 1 / 9;
+    grid-row: 1;
+  }
+
+  > div {
+    grid-column: 8 / 13;
+    grid-row: 1;
+    align-self: start;
+    margin-top: clamp(3rem, 9vw, 7rem);
+  }
+
+  @media (max-width: 900px) {
+    display: block;
+
+    > div {
+      margin-top: 1.25rem;
+    }
+  }
+`;
+
+/* ───────────────────────── Projects ───────────────────────── */
+
+const Project = styled('article', { shouldForwardProp: (prop) => prop !== 'flip' })<{ flip: boolean }>`
+  display: grid;
+  grid-template-columns: ${({ flip }) => (flip ? 'minmax(0, 7fr) minmax(0, 5fr)' : 'minmax(0, 5fr) minmax(0, 7fr)')};
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  align-items: center;
   scroll-margin-top: ${theme.layout.navHeight};
 
-  &:last-of-type {
-    padding-bottom: clamp(3rem, 8vw, 6rem);
+  &:not(:first-of-type) {
+    margin-top: clamp(3.5rem, 8vw, 6rem);
+  }
+
+  > figure {
+    order: ${({ flip }) => (flip ? 2 : 1)};
+  }
+  > div {
+    order: ${({ flip }) => (flip ? 1 : 2)};
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    > figure,
+    > div {
+      order: 0;
+    }
   }
 `;
 
-// Full-bleed establishing shot, then the placards set at a comfortable reading width
-const Still = styled.img`
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  background: ${theme.colors.inkRaised};
+/* ───────────────────────── Skills & contact ───────────────────────── */
+
+const Band = styled(Picture)`
+  figcaption {
+    max-width: ${theme.layout.max};
+    margin-inline: auto;
+    padding: 0 ${theme.layout.gutter};
+  }
 `;
 
-const Objects = styled.div`
-  margin-top: clamp(-5rem, -8vw, -1.5rem);
-  margin-inline: auto;
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+const OverBand = styled(Hold)`
+  margin-top: clamp(-8rem, -10vw, -2rem);
+  z-index: 1;
+`;
+
+const ContactGrid = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   gap: 1.25rem;
+  align-items: start;
+  margin-top: clamp(-8rem, -10vw, -2rem);
+  position: relative;
+  z-index: 1;
+  padding: 0 clamp(0rem, 3vw, 2.5rem);
 
-  /* each placard's wrapper is its size container (see content/kit.tsx) */
-  > * {
-    flex: 1 1 22rem;
-    max-width: 46rem;
-    container-type: inline-size;
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
   }
 `;
 
-const PlaceSection: React.FC<{ id: StopId; alt: string; children: ReactNode }> = ({ id, alt, children }) => (
-  <Place id={id} data-stop={id}>
-    <Still src={still(id)} alt={alt} loading={id === 'gate' ? 'eager' : 'lazy'} width={1600} height={1000} />
-    <Objects>
-      {React.Children.map(children, (child) => (
-        <div>{child}</div>
-      ))}
-    </Objects>
-  </Place>
-);
+const Plaque = styled(Hold)`
+  max-width: 26rem;
+  margin: 1.25rem clamp(0rem, 3vw, 2.5rem) 0 auto;
+`;
+
+/* ───────────────────────── Page ───────────────────────── */
 
 const DocumentSite: React.FC = () => {
   useLayoutEffect(() => {
     setScroller((id, smooth) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (id === 'gate') window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
-      else el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+      const behavior = smooth ? 'smooth' : 'auto';
+      if (id === 'gate') window.scrollTo({ top: 0, behavior });
+      else document.getElementById(id)?.scrollIntoView({ behavior, block: 'start' });
     });
     return () => setScroller(null);
   }, []);
@@ -105,28 +290,119 @@ const DocumentSite: React.FC = () => {
 
   return (
     <Main>
-      <PlaceSection id="gate" alt={ALT.gate}>
-        <GateSign />
-      </PlaceSection>
-      <PlaceSection id="notice" alt={ALT.notice}>
-        <OperatorBoard />
-      </PlaceSection>
-      <PlaceSection id="bay" alt={ALT.bay}>
-        <CaseLightbox inScene={false} />
-      </PlaceSection>
-      {projects.map((project, i) => (
-        <PlaceSection key={project.id} id={`file-${i + 1}` as StopId} alt={fileAlt(project.title)}>
-          <Manifest project={project} index={i} />
-        </PlaceSection>
-      ))}
-      <PlaceSection id="signals" alt={ALT.signals}>
-        <SkillsBoard inScene={false} />
-      </PlaceSection>
-      <PlaceSection id="dispatch" alt={ALT.dispatch}>
-        <DispatchWindow />
-        <OrderSlip />
-        <EducationPlaque />
-      </PlaceSection>
+      <Hero id="gate" data-stop="gate">
+        <Picture
+          id="gate"
+          eager
+          ratio="21 / 9"
+          ratioSm="4 / 3"
+          focus="62% 50%"
+          maxHeight={`calc(78vh - ${theme.layout.navHeight})`}
+          alt="Night at a container terminal: “Jayprakash” and “Behera” stencilled across a stack of shipping containers under an amber floodlight."
+          caption="The gate · night shift"
+        />
+        <Wrap>
+          <HeroSign>
+            <GateSign />
+          </HeroSign>
+        </Wrap>
+      </Hero>
+
+      <Chapter id="notice" data-stop="notice">
+        <Wrap>
+          <ChapterHead n={1} label="About" />
+          <Hold>
+            <OperatorBoard />
+          </Hold>
+        </Wrap>
+      </Chapter>
+
+      <Chapter id="bay" data-stop="bay">
+        <Wrap>
+          <ChapterHead n={2} label="Experience" />
+          <Collage>
+            <Picture
+              id="bay"
+              ratio="16 / 10"
+              focus="45% 55%"
+              alt="A loading bay at night: four containers marked Inventory, Tasks, Vendors and Orders hang from one gantry beam marked “REST API · JWT + RBAC”, piped into tanks marked Redis and MongoDB."
+              caption="The loading bay · four modules on one API gantry"
+            />
+            <Hold>
+              <CaseLightbox inScene={false} />
+            </Hold>
+          </Collage>
+        </Wrap>
+      </Chapter>
+
+      <Chapter as="div">
+        <Wrap>
+          {projects.map((project, i) => (
+            <React.Fragment key={project.id}>
+              {i === 0 && <ChapterHead n={3} label="Projects" />}
+              <Project id={`file-${i + 1}`} data-stop={`file-${i + 1}`} flip={i % 2 === 1}>
+                <Picture
+                  id={`file-${i + 1}` as StopId}
+                  ratio="4 / 3"
+                  focus="58% 45%"
+                  alt={`“${project.title}” painted along a shipping container in the project row, the next stacks receding behind it.`}
+                  caption={`Row ${String(i + 1).padStart(2, '0')} · ${project.code}`}
+                />
+                <Hold>
+                  <Manifest project={project} index={i} />
+                </Hold>
+              </Project>
+            </React.Fragment>
+          ))}
+        </Wrap>
+      </Chapter>
+
+      <Chapter id="signals" data-stop="signals">
+        <Wrap>
+          <ChapterHead n={4} label="Skills" />
+        </Wrap>
+        <Band
+          id="signals"
+          ratio="21 / 9"
+          ratioSm="4 / 3"
+          focus="50% 58%"
+          maxHeight="64vh"
+          captionTop
+          alt="A signal gantry over the lane with six signal heads — Languages, Frontend, Backend, Mobile, Data, Cloud / DevOps — and an amber lamp lit for every skill."
+          caption="The signal gantry · one lamp per skill"
+        />
+        <Wrap>
+          <OverBand>
+            <SkillsBoard inScene={false} />
+          </OverBand>
+        </Wrap>
+      </Chapter>
+
+      <Chapter id="dispatch" data-stop="dispatch">
+        <Wrap>
+          <ChapterHead n={5} label="Contact" />
+          <Picture
+            id="dispatch"
+            ratio="21 / 9"
+            ratioSm="4 / 3"
+            focus="45% 50%"
+            captionTop
+            alt="The dispatch office at the end of the quay at night, its window lit amber behind half-drawn blinds."
+            caption="The dispatch office · end of the quay"
+          />
+          <ContactGrid>
+            <Hold>
+              <DispatchWindow />
+            </Hold>
+            <Hold>
+              <OrderSlip />
+            </Hold>
+          </ContactGrid>
+          <Plaque>
+            <EducationPlaque />
+          </Plaque>
+        </Wrap>
+      </Chapter>
     </Main>
   );
 };

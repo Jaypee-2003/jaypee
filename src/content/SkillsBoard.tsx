@@ -12,12 +12,6 @@ const Board = styled.section`
   padding: 26px 28px;
 `;
 
-const Title = styled.h2`
-  margin-top: 6px;
-  font-size: clamp(38px, 10vw, 50px);
-  text-transform: uppercase;
-`;
-
 const Groups = styled.div`
   margin-top: 18px;
   display: grid;
@@ -64,10 +58,15 @@ export const SkillsBoard: React.FC<{ inScene: boolean }> = ({ inScene }) => {
       </section>
     );
   }
+  // The plain view's chapter marker already says "Skills", so the heading here is for assistive tech only
   return (
     <Board aria-labelledby="skills-title">
-      <Label>Signal groups</Label>
-      <Title id="skills-title">Skills</Title>
+      <h2 id="skills-title" className="sr-only">
+        Skills
+      </h2>
+      <Label>
+        {skillGroups.length} groups · {skillGroups.reduce((n, g) => n + g.skills.length, 0)} skills
+      </Label>
       <Groups>{groups}</Groups>
     </Board>
   );

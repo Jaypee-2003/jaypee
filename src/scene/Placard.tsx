@@ -7,6 +7,7 @@ import { scrollToStop } from '../site/store';
 import { FOG } from './fog';
 import { slotFor } from './slots';
 import { placardContainer } from '../content/kit';
+import { stillStop } from '../site/mode';
 
 // A real DOM element standing in the scene as a physical sign.
 //  • drei <Html transform> maps the element onto a plane at this position with CSS 3D, so it has real
@@ -62,6 +63,8 @@ export const Placard: React.FC<PlacardProps> = ({ stop, size, width, position, r
       content.current.style.opacity = next.toFixed(3);
     }
   });
+
+  if (stillStop) return null;
 
   return (
     <group position={position} rotation={rotation}>

@@ -33,19 +33,18 @@ const NavContainer = styled.div`
 const Logo = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   font-family: ${theme.fonts.display};
   font-weight: 900;
   font-size: 1.35rem;
   letter-spacing: 0.06em;
   color: ${theme.colors.bone};
 
-  &::before {
-    content: '';
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: ${theme.colors.amber};
+  /* the JP mark: transparent PNG, dark letters rim-lit in amber, sits straight on the ink */
+  img {
+    display: block;
+    height: 2.1rem;
+    width: auto;
   }
 `;
 
@@ -194,7 +193,8 @@ const Navbar: React.FC<{ site: SiteModeState }> = ({ site }) => {
     <Nav aria-label="Sections">
       <NavContainer>
         <Logo to="/" onClick={go(SECTIONS[0])} aria-label="Jayprakash Behera — home">
-          JPB
+          <img src={`${process.env.PUBLIC_URL}/jp-mark.png`} alt="" width={132} height={102} />
+          JAYPEE
         </Logo>
         <NavLinks>
           {SECTIONS.map((section) => (

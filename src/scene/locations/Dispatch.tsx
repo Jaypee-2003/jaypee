@@ -7,6 +7,7 @@ import {
   OrderSlip,
   ORDER_SLIP,
 } from '../../content/Dispatch';
+import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
 import { Placard } from '../Placard';
 import { Halos, Paint, Post } from '../props';
@@ -21,6 +22,34 @@ const WINDOW = { at: [8, 2.72, FRONT_Z + 0.02] as [number, number, number], widt
 const SLIP = { at: [13.9, 1.9, -190.4] as [number, number, number], rotY: -0.3, width: 2.25 };
 const slipHeight = (SLIP.width * ORDER_SLIP.height) / ORDER_SLIP.width;
 const PLAQUE = { at: [12.4, 4.35, FRONT_Z + 0.02] as [number, number, number], width: 2.4 };
+const windowHeight = (WINDOW.width * DISPATCH_WINDOW.height) / DISPATCH_WINDOW.width;
+
+// In the still photograph the window has no lettering: it's lit from inside, blinds half drawn
+const SLATS = Array.from({ length: 11 }, (_, i) => i);
+const LitWindow: React.FC = () => (
+  <group position={[WINDOW.at[0], WINDOW.at[1], FRONT_Z]}>
+    <mesh position={[0, 0, 0.03]}>
+      <boxGeometry args={[WINDOW.width + 0.28, windowHeight + 0.28, 0.1]} />
+      <meshStandardMaterial color={PAL.paint.dark} roughness={0.7} />
+    </mesh>
+    <mesh position={[0, 0, 0.09]}>
+      <planeGeometry args={[WINDOW.width, windowHeight]} />
+      <meshStandardMaterial color={PAL.lamp} emissive={PAL.lamp} emissiveIntensity={0.32} toneMapped={false} />
+    </mesh>
+    {SLATS.map((i) => (
+      <mesh key={i} position={[0, windowHeight / 2 - 0.12 - i * 0.19, 0.1]}>
+        <planeGeometry args={[WINDOW.width, 0.1]} />
+        <meshStandardMaterial color="#6B4A22" emissive="#6B4A22" emissiveIntensity={0.35} toneMapped={false} />
+      </mesh>
+    ))}
+    {[-WINDOW.width / 6, WINDOW.width / 6].map((x) => (
+      <mesh key={x} position={[x, 0, 0.12]}>
+        <boxGeometry args={[0.1, windowHeight, 0.06]} />
+        <meshStandardMaterial color={PAL.paint.dark} roughness={0.7} />
+      </mesh>
+    ))}
+  </group>
+);
 
 export const Dispatch: React.FC = () => {
   const roofLamp: [number, number, number] = [CABIN.x + CABIN.w / 2 - 1, CABIN.h + 0.55, FRONT_Z + 0.3];
@@ -50,6 +79,7 @@ export const Dispatch: React.FC = () => {
       <Halos points={[{ at: roofLamp, size: 3 }]} strength={0.8} />
       <pointLight position={[CABIN.x, 5.4, FRONT_Z + 6]} color={PAL.lamp} intensity={55} distance={24} decay={2} />
 
+      {stillStop && <LitWindow />}
       <Placard
         stop="dispatch"
         size={DISPATCH_WINDOW}
@@ -71,13 +101,15 @@ export const Dispatch: React.FC = () => {
       </Placard>
 
       {/* The order slip on a standing desk in front of the window */}
-      <group position={SLIP.at} rotation={[0, SLIP.rotY, 0]}>
-        <Post from={[0, -SLIP.at[1], -0.25]} height={SLIP.at[1] - slipHeight / 2 + 0.1} radius={0.1} />
-        <mesh position={[0, -SLIP.at[1] + 0.03, -0.25]}>
-          <cylinderGeometry args={[0.45, 0.5, 0.06, 16]} />
-          <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.5} />
-        </mesh>
-      </group>
+      {!stillStop && (
+        <group position={SLIP.at} rotation={[0, SLIP.rotY, 0]}>
+          <Post from={[0, -SLIP.at[1], -0.25]} height={SLIP.at[1] - slipHeight / 2 + 0.1} radius={0.1} />
+          <mesh position={[0, -SLIP.at[1] + 0.03, -0.25]}>
+            <cylinderGeometry args={[0.45, 0.5, 0.06, 16]} />
+            <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.5} />
+          </mesh>
+        </group>
+      )}
       <Placard
         stop="dispatch"
         size={ORDER_SLIP}

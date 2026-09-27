@@ -1,4 +1,6 @@
-// Renders one still per stop of the 3D yard for the plain (document) view: public/stills/<stop>.jpg
+// Renders a clean photograph of each location in the 3D yard for the plain (document) view:
+// public/stills/<stop>.jpg. Stills have their own framing and none of the signs (see ?still in src/site/mode.ts).
+// The About section has no still — the portrait is its picture.
 //
 //   npm run build && npm run stills && npm run build
 //
@@ -12,7 +14,7 @@ const { chromium } = require('playwright-core');
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'public', 'stills');
 const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const STOPS = ['gate', 'notice', 'bay', 'file-1', 'file-2', 'file-3', 'file-4', 'file-5', 'signals', 'dispatch'];
+const STOPS = ['gate', 'bay', 'file-1', 'file-2', 'file-3', 'file-4', 'file-5', 'signals', 'dispatch'];
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff': 'font/woff', '.woff2': 'font/woff2' };
 
@@ -46,7 +48,7 @@ const serveBuild = () =>
     executablePath: CHROME,
     args: ['--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'],
   });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
   for (const stop of STOPS) {
     await page.goto(`${hosted.url}?still=${stop}#/`, { waitUntil: 'load' });
     await page.waitForFunction(() => document.documentElement.dataset.still === 'ready', null, { timeout: 60000 });

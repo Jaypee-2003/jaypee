@@ -5,6 +5,7 @@ import { PAL, Paint as PaintName } from '../palette';
 import { Placard } from '../Placard';
 import { Container, IdMark, Paint, Post } from '../props';
 import { StopId } from '../../site/stops';
+import { stillStop } from '../../site/mode';
 
 // The project row: one two-high stack per project along the right of the lane, long sides facing it.
 // The project's name is painted along the top container; its manifest stands on a tally board in front.
@@ -42,11 +43,13 @@ export const Row: React.FC = () => (
               {project.code}
             </Paint>
           </Container>
-          <group position={[BOARD.x, BOARD.y, z + BOARD.dz]} rotation={[0, BOARD.rotY, 0]}>
-            {[-MANIFEST_WIDTH / 2 + 0.3, MANIFEST_WIDTH / 2 - 0.3].map((x) => (
-              <Post key={x} from={[x, -BOARD.y, -0.1]} height={BOARD.y - manifestHeight / 2} radius={0.06} />
-            ))}
-          </group>
+          {!stillStop && (
+            <group position={[BOARD.x, BOARD.y, z + BOARD.dz]} rotation={[0, BOARD.rotY, 0]}>
+              {[-MANIFEST_WIDTH / 2 + 0.3, MANIFEST_WIDTH / 2 - 0.3].map((x) => (
+                <Post key={x} from={[x, -BOARD.y, -0.1]} height={BOARD.y - manifestHeight / 2} radius={0.06} />
+              ))}
+            </group>
+          )}
           <Placard
             stop={`file-${i + 1}` as StopId}
             size={MANIFEST}

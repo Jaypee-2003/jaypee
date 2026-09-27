@@ -23,7 +23,7 @@ const Board = styled.section`
   }
 `;
 
-// Sodium light turns everything one colour: the photo as a grayscale print multiplied onto amber
+// The portrait as it was taken — no filter, no tint
 const Photo = styled.figure`
   figcaption {
     margin-top: 10px;
@@ -31,7 +31,6 @@ const Photo = styled.figure`
 
   div {
     aspect-ratio: 4 / 5;
-    background: ${theme.colors.amber};
     overflow: hidden;
   }
 
@@ -40,8 +39,6 @@ const Photo = styled.figure`
     height: 100%;
     object-fit: cover;
     object-position: 50% 28%;
-    filter: grayscale(1) contrast(1.2) brightness(0.95);
-    mix-blend-mode: multiply;
   }
 
   @container (max-width: 760px) {

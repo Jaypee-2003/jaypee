@@ -31,7 +31,7 @@ const Brief = styled.p`
   line-height: 1.4;
 `;
 
-// A stat, set straight on the box: the number and what it measures
+// A stat, set straight on the box: the number and what it measures. In a narrow box the label goes under it.
 const Figure = styled.p`
   margin-top: 18px;
   display: grid;
@@ -42,7 +42,7 @@ const Figure = styled.p`
   strong {
     font-family: 'Big Shoulders Display', sans-serif;
     font-weight: 900;
-    font-size: clamp(64px, 20vw, 96px);
+    font-size: clamp(64px, 19cqi, 96px);
     line-height: 0.8;
     white-space: nowrap;
   }
@@ -51,6 +51,15 @@ const Figure = styled.p`
     padding-bottom: 4px;
     font-size: 14px;
     line-height: 1.35;
+  }
+
+  @container (max-width: 500px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+
+    span {
+      max-width: 22rem;
+    }
   }
 `;
 
