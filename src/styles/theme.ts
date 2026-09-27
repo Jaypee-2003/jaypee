@@ -28,7 +28,7 @@ export const theme = {
   },
 
   layout: {
-    navHeight: '3.5rem',
+    navHeight: '4rem',
     gutter: 'clamp(1rem, 4vw, 3rem)',
     max: '1200px',
   },
