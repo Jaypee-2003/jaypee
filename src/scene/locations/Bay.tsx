@@ -7,6 +7,7 @@ import { CaseLightbox, CASE_LIGHTBOX } from '../../content/CaseLightbox';
 import { stillStop } from '../../site/mode';
 import { PAL, Paint as PaintName } from '../palette';
 import { LampGlow, useLampLight } from '../daylight';
+import { useStaticSpotShadow } from '../shadows';
 import { Placard } from '../Placard';
 import { Container, IdMark, Paint, Post } from '../props';
 
@@ -46,13 +47,14 @@ const Worklight: React.FC = () => {
   const target = useRef<Object3D>(null);
   const spot = useRef<SpotLight>(null);
   useLampLight(spot, 1300);
+  useStaticSpotShadow(spot, 4);
   useFrame(() => {
     if (spot.current && target.current && spot.current.target !== target.current) spot.current.target = target.current;
   });
   return (
     <group>
       <object3D ref={target} position={[-4.5, 2.5, Z]} />
-      <spotLight ref={spot} position={[8, 15, -30]} color={PAL.lamp} intensity={1300} distance={60} angle={0.46} penumbra={0.8} decay={2} />
+      <spotLight ref={spot} position={[8, 15, -30]} color={PAL.lamp} intensity={1300} distance={60} angle={0.46} penumbra={0.8} decay={2} castShadow />
     </group>
   );
 };

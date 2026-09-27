@@ -1,6 +1,6 @@
 import React, { RefObject, useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Color, Light, MeshStandardMaterial, PointLight, Side } from 'three';
+import { Color, Light, MeshStandardMaterial, PointLight, Side, Vector3 } from 'three';
 import { getTimeOfDay, useTimeOfDay } from '../site/timeOfDay';
 import { stillStop } from '../site/mode';
 import { PAL } from './palette';
@@ -12,6 +12,17 @@ export const daylight = { value: getTimeOfDay() === 'day' ? 1 : 0 };
 export const NIGHT_SKY = PAL.night;
 // Hazy daylight. Keep in step with the scene's --page colour in src/index.css (placards fade into it).
 export const DAY_SKY = '#C9D4DC';
+
+// Where the sun and the moon are, as directions from the yard. Both sit ahead of the camera's usual
+// heading (down the lane, -z) so they're in the sky of most shots; their light and shadows come from the
+// same place the sky draws them. Sun: just left of the lane, 23° up. Moon: further left, lower.
+const fromAngles = (azimuthLeftDeg: number, elevationDeg: number): Vector3 => {
+  const az = (azimuthLeftDeg * Math.PI) / 180;
+  const el = (elevationDeg * Math.PI) / 180;
+  return new Vector3(-Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)).normalize();
+};
+export const SUN_DIR = fromAngles(5, 23);
+export const MOON_DIR = fromAngles(35, 20);
 
 // Share of a lamp's night-time strength left on: 1 at night, `dayShare` by day
 export const lampShare = (dayShare = 0): number => dayShare + (1 - dayShare) * (1 - daylight.value);

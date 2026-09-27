@@ -5,6 +5,7 @@ import { GateSign, GATE_SIGN } from '../../content/GateSign';
 import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
 import { LampGlow, useLampLight } from '../daylight';
+import { useStaticSpotShadow } from '../shadows';
 import { Placard } from '../Placard';
 import { Container, Halos, IdMark, Paint, Post } from '../props';
 
@@ -60,13 +61,14 @@ const Floodlight: React.FC = () => {
   const target = useRef<Object3D>(null);
   const spot = useRef<SpotLight>(null);
   useLampLight(spot, 1500);
+  useStaticSpotShadow(spot, 6);
   useFrame(() => {
     if (spot.current && target.current && spot.current.target !== target.current) spot.current.target = target.current;
   });
   return (
     <group>
       <object3D ref={target} position={[-4, 5.2, FRONT]} />
-      <spotLight ref={spot} position={[11, 14, 15]} color={PAL.lamp} intensity={1500} distance={70} angle={0.36} penumbra={0.8} decay={2} />
+      <spotLight ref={spot} position={[11, 14, 15]} color={PAL.lamp} intensity={1500} distance={70} angle={0.36} penumbra={0.8} decay={2} castShadow />
     </group>
   );
 };

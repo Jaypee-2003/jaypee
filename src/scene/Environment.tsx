@@ -21,7 +21,9 @@ import { PAL, Paint } from './palette';
 import { FOG } from './fog';
 import { asphaltNoise } from './textures';
 import { Box, Halos, Pools, Stacks } from './props';
-import { DAY_SKY, daylight, LampGlow, lampShare, NIGHT_SKY } from './daylight';
+import { DAY_SKY, daylight, LampGlow, lampShare, MOON_DIR, NIGHT_SKY, SUN_DIR } from './daylight';
+import { Sky } from './Sky';
+import { Yardwork } from './Yardwork';
 
 // The yard around the stops: ground, lanes, stacked cargo, lamp poles, cranes, the quay and the sky glow.
 
@@ -243,11 +245,11 @@ const Ground: React.FC = () => {
   }, []);
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, 0, (60 + QUAY_Z) / 2]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, 0, (60 + QUAY_Z) / 2]} userData={{ decal: true }}>
         <planeGeometry args={[320, 60 - QUAY_Z]} />
         <meshStandardMaterial ref={asphalt} color={PAL.asphalt} map={map} roughness={0.96} metalness={0} />
       </mesh>
-      <mesh geometry={dashes}>
+      <mesh geometry={dashes} userData={{ decal: true }}>
         <meshStandardMaterial color={PAL.stencil} roughness={1} polygonOffset polygonOffsetFactor={-1} />
       </mesh>
       {/* Quay edge and bollards */}
@@ -261,7 +263,7 @@ const Ground: React.FC = () => {
           <meshStandardMaterial color={PAL.paint.dark} roughness={0.5} metalness={0.6} />
         </mesh>
       ))}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, -1.4, QUAY_Z - 300]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, -1.4, QUAY_Z - 300]} userData={{ decal: true }}>
         <planeGeometry args={[900, 600]} />
         <meshStandardMaterial ref={water} color={PAL.water} roughness={0.22} metalness={0.7} />
       </mesh>
@@ -302,17 +304,33 @@ const Horizon: React.FC = () => {
   );
 };
 
-// The two lights of the sky. Night: a cool fill and a low moon, so everything warm comes from the lamps.
-// Day: bright overcast fill and a high sun from over the left shoulder, lighting the faces along the route.
+// The lights of the sky. The key light is the sun by day and the moon by night, shining from where the
+// sky draws them and casting the yard's shadows. Both sit ahead of the camera, so faces toward it are
+// lit by the fill: a sky hemisphere, plus a soft bounce from the bright half of the sky behind the camera.
+// Night keeps it all cool and dim, so everything warm comes from the lamps.
 const SKY = {
   fill: { night: new Color('#5B6E90'), day: new Color('#DCE6EE') },
   ground: { night: new Color('#10151E'), day: new Color('#6A6152') },
-  fillIntensity: { night: 1.7, day: 2.1 },
-  key: { night: new Color(PAL.moon), day: new Color('#FFF0D8') },
-  keyIntensity: { night: 1.1, day: 3.1 },
-  keyPosition: { night: new Vector3(-60, 80, 30), day: new Vector3(-50, 110, 70) },
+  fillIntensity: { night: 1.6, day: 2.0 },
+  key: { night: new Color('#9FB4D6'), day: new Color('#FFEBD0') },
+  keyIntensity: { night: 0.95, day: 3.3 },
+  shadow: { night: 0.55, day: 0.82 },
+  bounce: { night: new Color('#6B7FA3'), day: new Color('#E6EEF5') },
+  bounceIntensity: { night: 0.25, day: 1.25 },
   background: { night: new Color(NIGHT_SKY), day: new Color(DAY_SKY) },
 };
+
+// The key light's shadow covers a box around the part of the yard in front of the camera, and moves
+// with it in whole shadow-map texels so edges don't shimmer as the camera travels.
+const SHADOW = { half: 46, ahead: 28, map: 2048, distance: 160 };
+const TEXEL = (SHADOW.half * 2) / SHADOW.map;
+const BOUNCE_DIR = new Vector3(0.25, 0.55, 1).normalize();
+const WORLD_UP = new Vector3(0, 1, 0);
+const keyDir = new Vector3();
+const forward = new Vector3();
+const center = new Vector3();
+const right = new Vector3();
+const upInLight = new Vector3();
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
@@ -321,6 +339,7 @@ export const Yard: React.FC = () => {
   const stacks = useMemo(buildStacks, []);
   const fill = useRef<HemisphereLight>(null);
   const key = useRef<DirectionalLight>(null);
+  const bounce = useRef<DirectionalLight>(null);
   const applied = useRef(-1);
 
   useLayoutEffect(() => {
@@ -333,30 +352,78 @@ export const Yard: React.FC = () => {
     };
   }, [scene]);
 
-  // Sky, fog and the two sky lights follow the daylight
-  useFrame(() => {
+  useLayoutEffect(() => {
+    const light = key.current;
+    if (!light) return;
+    const cam = light.shadow.camera;
+    cam.left = cam.bottom = -SHADOW.half;
+    cam.right = cam.top = SHADOW.half;
+    cam.near = 1;
+    cam.far = SHADOW.distance * 2;
+    cam.updateProjectionMatrix();
+    light.shadow.mapSize.set(SHADOW.map, SHADOW.map);
+    light.shadow.bias = -0.0004;
+    light.shadow.normalBias = 0.045;
+    light.shadow.radius = 3;
+    scene.add(light.target);
+    return () => {
+      scene.remove(light.target);
+    };
+  }, [scene]);
+
+  useFrame(({ camera }) => {
     const t = daylight.value;
-    if (t === applied.current || !fill.current || !key.current) return;
-    applied.current = t;
-    (scene.background as Color).lerpColors(SKY.background.night, SKY.background.day, t);
-    (scene.fog as Fog).color.lerpColors(SKY.background.night, SKY.background.day, t);
-    fill.current.color.lerpColors(SKY.fill.night, SKY.fill.day, t);
-    fill.current.groundColor.lerpColors(SKY.ground.night, SKY.ground.day, t);
-    fill.current.intensity = lerp(SKY.fillIntensity.night, SKY.fillIntensity.day, t);
-    key.current.color.lerpColors(SKY.key.night, SKY.key.day, t);
-    key.current.intensity = lerp(SKY.keyIntensity.night, SKY.keyIntensity.day, t);
-    key.current.position.lerpVectors(SKY.keyPosition.night, SKY.keyPosition.day, t);
+    const light = key.current;
+    if (!fill.current || !light || !bounce.current) return;
+
+    // Sky, fog and the sky lights follow the daylight
+    if (t !== applied.current) {
+      applied.current = t;
+      (scene.background as Color).lerpColors(SKY.background.night, SKY.background.day, t);
+      (scene.fog as Fog).color.lerpColors(SKY.background.night, SKY.background.day, t);
+      fill.current.color.lerpColors(SKY.fill.night, SKY.fill.day, t);
+      fill.current.groundColor.lerpColors(SKY.ground.night, SKY.ground.day, t);
+      fill.current.intensity = lerp(SKY.fillIntensity.night, SKY.fillIntensity.day, t);
+      light.color.lerpColors(SKY.key.night, SKY.key.day, t);
+      light.intensity = lerp(SKY.keyIntensity.night, SKY.keyIntensity.day, t);
+      light.shadow.intensity = lerp(SKY.shadow.night, SKY.shadow.day, t);
+      bounce.current.color.lerpColors(SKY.bounce.night, SKY.bounce.day, t);
+      bounce.current.intensity = lerp(SKY.bounceIntensity.night, SKY.bounceIntensity.day, t);
+    }
+
+    // The key light shines from the moon or the sun (sweeping across the sky at dusk and dawn),
+    // aimed at the ground in front of the camera
+    keyDir.lerpVectors(MOON_DIR, SUN_DIR, t).normalize();
+    camera.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+    center.copy(camera.position).addScaledVector(forward, SHADOW.ahead).setY(0);
+    right.crossVectors(WORLD_UP, keyDir).normalize();
+    upInLight.crossVectors(keyDir, right);
+    const a = Math.round(center.dot(right) / TEXEL) * TEXEL;
+    const b = Math.round(center.dot(upInLight) / TEXEL) * TEXEL;
+    const c = center.dot(keyDir);
+    center.copy(right).multiplyScalar(a).addScaledVector(upInLight, b).addScaledVector(keyDir, c);
+    light.target.position.copy(center);
+    light.target.updateMatrixWorld();
+    light.position.copy(center).addScaledVector(keyDir, SHADOW.distance);
+    bounce.current.position.copy(center).addScaledVector(BOUNCE_DIR, 50);
+    bounce.current.target.position.copy(center);
+    bounce.current.target.updateMatrixWorld();
   });
 
   return (
     <>
-      <hemisphereLight ref={fill} args={['#5B6E90', '#10151E', 1.7]} />
-      <directionalLight ref={key} color={PAL.moon} intensity={1.1} position={[-60, 80, 30]} />
+      <Sky />
+      <hemisphereLight ref={fill} args={['#5B6E90', '#10151E', 1.6]} />
+      <directionalLight ref={key} color={SKY.key.night} intensity={SKY.keyIntensity.night} castShadow />
+      <directionalLight ref={bounce} color={SKY.bounce.night} intensity={SKY.bounceIntensity.night} />
       <Ground />
       <Stacks boxes={stacks} />
       <Poles />
       <Cranes />
       <Horizon />
+      <Yardwork />
     </>
   );
 };

@@ -49,6 +49,75 @@ export const asphaltNoise = (): Texture => {
   return asphalt;
 };
 
+// Weathering for container sides, multiplied into the paint: dirt thrown up along the bottom, rust
+// weeping down from the top rail, scuffs and patch-painted panels. One tile is 6 m wide and exactly one
+// container high (2.59 m), so the dirt line always sits at the foot of the box.
+let grime: Texture | null = null;
+export const containerGrime = (): Texture => {
+  if (grime) return grime;
+  const W = 512;
+  const H = 224;
+  const [c, g] = canvas(W, H);
+  let seed = 19;
+  const rand = (): number => {
+    seed = (seed * 16807) % 2147483647;
+    return seed / 2147483647;
+  };
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, W, H);
+
+  // Patch-painted panels: slightly different shade, as after repairs
+  for (let i = 0; i < 3; i++) {
+    const x = rand() * W;
+    const w = 30 + rand() * 70;
+    g.fillStyle = `rgba(${rand() < 0.5 ? '40,36,30' : '255,250,240'},${0.05 + rand() * 0.05})`;
+    g.fillRect(x, 10 + rand() * 30, w, H * (0.4 + rand() * 0.4));
+  }
+
+  // Rust streaks weeping from the top rail
+  for (let i = 0; i < 26; i++) {
+    const x = rand() * W;
+    const len = H * (0.15 + rand() * 0.55);
+    const grad = g.createLinearGradient(0, 0, 0, len);
+    const a = 0.1 + rand() * 0.22;
+    grad.addColorStop(0, `rgba(92,52,24,${a})`);
+    grad.addColorStop(1, 'rgba(92,52,24,0)');
+    g.fillStyle = grad;
+    g.fillRect(x, 0, 1 + rand() * 3, len);
+  }
+
+  // Road dirt along the bottom, rising in soft plumes
+  const dirt = g.createLinearGradient(0, H, 0, H * 0.55);
+  dirt.addColorStop(0, 'rgba(38,32,26,0.3)');
+  dirt.addColorStop(0.3, 'rgba(38,32,26,0.09)');
+  dirt.addColorStop(1, 'rgba(38,32,26,0)');
+  g.fillStyle = dirt;
+  g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 40; i++) {
+    const x = rand() * W;
+    const r = 8 + rand() * 26;
+    const plume = g.createRadialGradient(x, H, 0, x, H, r * 2);
+    plume.addColorStop(0, 'rgba(38,32,26,0.1)');
+    plume.addColorStop(1, 'rgba(38,32,26,0)');
+    g.fillStyle = plume;
+    g.fillRect(x - r * 2, H - r * 2, r * 4, r * 2);
+  }
+
+  // Scuffs and dents catching grime
+  for (let i = 0; i < 70; i++) {
+    g.fillStyle = `rgba(30,28,26,${0.05 + rand() * 0.12})`;
+    g.fillRect(rand() * W, rand() * H, 1 + rand() * 7, 1 + rand() * 2);
+  }
+
+  grime = new CanvasTexture(c);
+  grime.wrapS = RepeatWrapping;
+  grime.colorSpace = SRGBColorSpace;
+  // worldBox UVs are in metres: 6 m per tile across, one container height (bottom = v 0) up
+  grime.repeat.set(1 / 6, 1 / 2.59);
+  grime.anisotropy = 4;
+  return grime;
+};
+
 // Soft radial falloff for lamp halos (points) and the pools of light under the lamps (ground decals)
 let glow: Texture | null = null;
 export const radialGlow = (): Texture => {

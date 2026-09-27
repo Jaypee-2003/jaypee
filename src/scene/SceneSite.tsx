@@ -12,6 +12,7 @@ import { FOV, POSES } from './rig';
 import { CameraRig } from './CameraRig';
 import { Yard } from './Environment';
 import { DaylightDriver } from './daylight';
+import { ShadowRules } from './shadows';
 import { Gate } from './locations/Gate';
 import { Notice } from './locations/Notice';
 import { Bay } from './locations/Bay';
@@ -115,6 +116,7 @@ const World: React.FC<{ still: StopId | null; onReady: () => void }> = ({ still,
       <Row />
       <Signals />
       <Dispatch />
+      <ShadowRules />
       <Preload all />
     </>
   );
@@ -175,6 +177,7 @@ const SceneSite: React.FC<{ onFail: () => void }> = ({ onFail }) => {
           <SceneBoundary onFail={onFail}>
             <Canvas
               frameloop="demand"
+              shadows="soft"
               dpr={[1, 1.5]}
               camera={{ fov: FOV, near: 0.1, far: 800, position: POSES.gate.pos }}
               gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', preserveDrawingBuffer: Boolean(still) }}

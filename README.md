@@ -86,7 +86,9 @@ Three colours, each used for what it is in the yard. None of them are decoration
 - **Type:**
   - [Big Shoulders Display](https://fonts.google.com/specimen/Big+Shoulders+Display) for condensed industrial capitals. Its stencil cut is the paint on the containers.
   - [Archivo](https://fonts.google.com/specimen/Archivo) for reading.
-- **Materials:** cargo is matte corrugated steel, lamps are emissive with real point lights and spotlights, and crane lattice is drawn as wireframe. Glow comes from light in the scene, not CSS shadows.
+- **Materials:** cargo is matte corrugated steel, weathered with road dirt and rust streaks, with real container structure: corner posts and castings, rails, and door ends with locking bars. Lamps are emissive with real point lights and spotlights, and crane lattice is drawn as wireframe. Glow comes from light in the scene, not CSS shadows.
+- **Sky and shadows:** a procedural sky with the sun and cumulus by day, and stars, the moon and thin moonlit clouds by night. The sun or moon casts real shadows that follow the camera, and the floodlights cast their own at night.
+- **Between the stops:** a working yard. Jersey barriers, cones, pallets, crates and drums, a reach stacker lifting a box, lane lines, crossings, arrows and bay codes painted on the asphalt, and wet patches that catch the lamps at night.
 - **Surfaces:** every sign is a solid physical object: enamel, steel, a lightbox, paper, a lit window. Nothing is translucent or blurred.
 
 ## How it works
