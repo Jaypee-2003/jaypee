@@ -65,7 +65,6 @@ export const lookCurve = new CatmullRomCurve3(points.map((p) => toVec(p.look)), 
 
 const last = points.length - 1;
 const stopParam = stopPoint.map((i) => i / last);
-export const paramForStop = (id: StopId): number => stopParam[STOPS.findIndex((s) => s.id === id)] ?? 0;
 
 // Travel eases in and out, so the camera leaves one stop and settles into the next like a dolly shot
 const ease = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);

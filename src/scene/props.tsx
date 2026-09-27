@@ -217,24 +217,5 @@ export const Post: React.FC<{ from: [number, number, number]; height: number; ra
   </mesh>
 );
 
-// An emissive lamp lens: the light source itself (pair with a pointLight and a halo where it matters)
-export const LampLens: React.FC<{ at: [number, number, number]; radius?: number; facing?: number; dim?: boolean }> = ({
-  at,
-  radius = 0.16,
-  facing = 0,
-  dim = false,
-}) => (
-  <mesh position={at} rotation={[Math.PI / 2, 0, facing]}>
-    <cylinderGeometry args={[radius, radius, 0.06, 20]} />
-    <meshStandardMaterial
-      color={dim ? '#2A2418' : PAL.lamp}
-      emissive={PAL.lamp}
-      emissiveIntensity={dim ? 0.05 : 1.15}
-      roughness={0.4}
-      toneMapped={false}
-    />
-  </mesh>
-);
-
 // Re-exported so locations import every building block from one place
 export { Paint };

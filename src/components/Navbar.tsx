@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { theme } from '../styles/theme';
+import jpMark from '../assets/brand/jp-mark.png';
 import { NavSection, SECTIONS, sectionForStop } from '../site/stops';
 import { scrollToStop, useActiveStop } from '../site/store';
 import { SiteModeState } from '../site/mode';
@@ -40,7 +41,7 @@ const Logo = styled(Link)`
   letter-spacing: 0.06em;
   color: ${theme.colors.bone};
 
-  /* the JP mark: transparent PNG, dark letters rim-lit in amber, sits straight on the ink */
+  /* the JP mark: dark letters rim-lit in amber on a transparent ground, set straight on the ink bar */
   img {
     display: block;
     height: 2.1rem;
@@ -193,7 +194,7 @@ const Navbar: React.FC<{ site: SiteModeState }> = ({ site }) => {
     <Nav aria-label="Sections">
       <NavContainer>
         <Logo to="/" onClick={go(SECTIONS[0])} aria-label="Jayprakash Behera — home">
-          <img src={`${process.env.PUBLIC_URL}/jp-mark.png`} alt="" width={132} height={102} />
+          <img src={jpMark} alt="" width={132} height={102} />
           JAYPEE
         </Logo>
         <NavLinks>

@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
-import profileImage from '../assets/images/profile linked in.jpeg';
+import profileImage from '../assets/images/profile.jpg';
 import { experience, person } from '../data/profile';
 import { Label, material, placardBase } from './kit';
 

@@ -65,5 +65,3 @@ export const Paint: React.FC<PaintProps> = ({ children, color = PAL.stencil, fac
     </Text>
   );
 };
-
-export const PAINT_FONTS = [stencilFont, labelFont];
