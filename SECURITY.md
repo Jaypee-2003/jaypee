@@ -40,6 +40,7 @@ Include what you found, where, and how to reproduce it. I'll acknowledge your re
 | Dependency updates | Dependabot raises weekly updates for npm and for the pinned actions, and security updates as soon as advisories land. | `.github/dependabot.yml` |
 | Reproducible installs | CI installs exact versions from the lockfile with `npm ci`. | `deploy.yml` |
 | Content validation | Every build checks the content file first: links must be `https://`, ids unique, text within its sign. | `scripts/check-content.js` |
+| Build scripts | The photograph renderer's temporary web server listens on the local machine only and serves nothing outside the build folder. | `scripts/render-stills.js` |
 
 ## Limits, stated plainly
 

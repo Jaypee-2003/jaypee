@@ -17,6 +17,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 
 const ROOT = path.resolve(__dirname, '..');
+const BUILD = path.join(ROOT, 'build');
 const option = (name, fallback) => {
   const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
   return arg ? arg.slice(name.length + 3) : fallback;
@@ -45,25 +46,33 @@ const TYPES = {
   '.woff2': 'font/woff2',
 };
 
-// Static server for ./build, honouring the "homepage" sub-path from package.json
+// Static server for ./build, honouring the "homepage" sub-path from package.json. It listens on this machine
+// only (loopback), and serves nothing outside ./build: a path that resolves anywhere else ("..", encoded
+// slashes, absolute paths) gets a 404, as does a malformed one.
 const serveBuild = () =>
   new Promise((resolve) => {
     const base = new URL(require(path.join(ROOT, 'package.json')).homepage || 'http://x/').pathname.replace(/\/$/, '');
     const server = http.createServer((req, res) => {
-      let file = decodeURIComponent(req.url.split('?')[0]);
-      if (base && file.startsWith(base)) file = file.slice(base.length);
-      file = path.join(ROOT, 'build', file === '/' || file === '' ? 'index.html' : file);
+      const notFound = () => {
+        res.writeHead(404);
+        res.end();
+      };
+      let name;
+      try {
+        name = decodeURIComponent(req.url.split('?')[0]);
+      } catch {
+        return notFound();
+      }
+      if (base && name.startsWith(base)) name = name.slice(base.length);
+      const file = path.resolve(BUILD, `./${name === '/' || name === '' ? 'index.html' : name}`);
+      if (!file.startsWith(BUILD + path.sep) || file.includes('\0')) return notFound();
       fs.readFile(file, (err, data) => {
-        if (err) {
-          res.writeHead(404);
-          res.end();
-          return;
-        }
+        if (err) return notFound();
         res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
         res.end(data);
       });
     });
-    server.listen(0, () => resolve({ server, url: `http://localhost:${server.address().port}${base}/` }));
+    server.listen(0, '127.0.0.1', () => resolve({ server, url: `http://127.0.0.1:${server.address().port}${base}/` }));
   });
 
 const shoot = async (page, url, file, size) => {
