@@ -6,8 +6,9 @@
 #   · the token gets no permissions by default; only the deploy job may write, and only repository contents
 #   · a high- or critical-severity advisory in any dependency the site ships stops the deploy
 #
-# The plain view's location photos (public/stills) are committed images, not built here: after changing
-# the 3D scene, re-render them locally with `npm run build && npm run stills` and commit the result.
+# The plain view's photographs are rendered here, on every deploy, from the build itself (see the step
+# below), so they always match the content. The copies in public/stills are only for the README and for
+# local previews.
 name: Deploy to GitHub Pages
 
 on:
@@ -44,10 +45,17 @@ jobs:
       - name: Audit shipped dependencies
         run: npm audit --omit=dev --audit-level=high
 
-      # CI=true makes warnings fail the build, the same check as locally
+      # CI=true makes warnings fail the build, the same check as locally. `prebuild` runs the content check
+      # (scripts/check-content.js) first: a project that wouldn't fit its sign stops the deploy.
       - run: npm run build
         env:
           CI: true
+
+      # Photograph every place in the yard for the plain view, from this exact build, straight into it.
+      # Adding or removing a project in src/data/profile.ts is enough: its photographs follow on deploy.
+      # (The runner has no GPU, so Chrome renders with software WebGL; a few pages at once keeps it quick.)
+      - name: Render plain-view photographs
+        run: npm run stills -- --out=build/stills --jobs=3
 
       - uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:

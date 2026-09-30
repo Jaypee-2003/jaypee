@@ -17,6 +17,7 @@ import { PAL } from './palette';
 import { FOG } from './fog';
 import { additiveLight } from './props';
 import { daylight, lampShare } from './daylight';
+import { QUAY_Z } from './layout';
 
 // Light made visible: beams of lamplight hanging in the night air, and a lit city across the water.
 
@@ -172,7 +173,7 @@ const drawCity = (): { shape: Texture; windows: Texture } => {
   return { shape: toTexture(shape), windows: toTexture(windows) };
 };
 
-const CITY = { z: -600, width: 1500, height: 88, base: -1.4 };
+const CITY = { z: QUAY_Z - 365, width: 1500, height: 88, base: -1.4 };
 const SILHOUETTE = { night: new Color('#05080E'), day: new Color('#A3B0BC') };
 
 export const City: React.FC = () => {

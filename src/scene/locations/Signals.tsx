@@ -5,21 +5,13 @@ import { skillGroups } from '../../data/profile';
 import { PAL } from '../palette';
 import { Halos, Paint } from '../props';
 import { LampPoint } from '../daylight';
+import { SIGNALS } from '../layout';
 
 // Skills as a signal gantry over the lane: one signal head per group, one lit lamp per skill, named
 // beside it. (The same list is in the DOM for assistive tech — see SkillsBoard.)
 
-const Z = -194;
-const CENTER_X = 10.7;
-const SPACING = 2.55;
-const TOP = 8.1; // underside of the truss
-const PLATE_W = 2.2;
-const LAMP_STEP = 0.5;
-const headX = (i: number): number => CENTER_X + (i - (skillGroups.length - 1) / 2) * SPACING;
-const plateHeight = (n: number): number => 0.95 + n * LAMP_STEP;
+const { z: Z, centerX: CENTER_X, top: TOP, plateW: PLATE_W, lampStep: LAMP_STEP, headX, plateHeight, towerX: TOWER_X } = SIGNALS;
 const lampY = (k: number): number => TOP - 0.85 - k * LAMP_STEP;
-
-const TOWER_X = [headX(0) - PLATE_W / 2 - 1.1, headX(skillGroups.length - 1) + PLATE_W / 2 + 1.1];
 
 export const Signals: React.FC = () => {
   const lattice = useMemo(() => {

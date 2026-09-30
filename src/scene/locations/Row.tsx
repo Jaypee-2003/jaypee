@@ -7,12 +7,12 @@ import { Container, IdMark, Paint, Post } from '../props';
 import { StopId } from '../../site/stops';
 import { stillStop } from '../../site/mode';
 import { LampPoint } from '../daylight';
+import { fileZ, ROW } from '../layout';
 
 // The project row: one two-high stack per project along the right of the lane, long sides facing it.
 // The project's name is painted along the top container; its manifest stands on a tally board in front.
 
-export const FILE_X = 20; // stack centre line
-export const fileZ = (i: number): number => -100 - 16 * i;
+const FILE_X = ROW.x; // stack centre line
 
 // Each project's paint, in the three-colour system
 const PAINTS: PaintName[] = ['bone', 'ink', 'steel', 'copper', 'dark'];
@@ -20,7 +20,8 @@ const MANIFEST_WIDTH = 4.6;
 const manifestHeight = (MANIFEST_WIDTH * MANIFEST.height) / MANIFEST.width;
 // Tally board in front of the stack, turned a little toward the approaching camera
 const BOARD = { x: 13.9, y: 1.5, dz: 4.9, rotY: -0.96 };
-export const ROW_LIGHTS = [1, 3];
+// A floodlight over every second stack
+const ROW_LIGHTS = projects.map((_, i) => i).filter((i) => i % 2 === 1);
 
 // Rotated so each container's +z side faces the lane (world -X) and its +x end points down-lane (world +Z)
 const FACING: [number, number, number] = [0, -Math.PI / 2, 0];

@@ -22,6 +22,18 @@ export const STOPS: Stop[] = [
   { id: 'dispatch', travel: 1.2, dwell: 0.6 },
 ];
 
+// The plain view's photograph of each place, rendered from the scene by scripts/render-stills.js. Project
+// photographs are named after the project, not its position, so reordering or removing projects never pairs
+// a manifest with the wrong photograph. The About section has none: the portrait is its picture.
+export const stillName = (id: StopId): string => {
+  const file = /^file-(\d+)$/.exec(id);
+  return file ? `project-${projects[Number(file[1]) - 1]?.id ?? id}` : id;
+};
+export const STILLS: { stop: StopId; name: string }[] = STOPS.filter((s) => s.id !== 'notice').map((s) => ({
+  stop: s.id,
+  name: stillName(s.id),
+}));
+
 export interface NavSection {
   label: string;
   route: string;

@@ -1,5 +1,9 @@
-// Single source for portfolio content. Both presentations — the 3D yard and the plain document — read from here;
-// anything about how it looks lives with the presentation, not in this file.
+// Single source for portfolio content. Both presentations (the 3D yard and the plain page) read from here,
+// and the yard lays itself out from it: add a project and a new container stack, camera stop, manifest and
+// photograph appear; remove one and its place closes up. The same goes for loading-bay modules and skill groups.
+//
+// How to edit, field by field, with the limits each sign can hold: see CONTENT.md.
+// `npm run check` (also run automatically before every build) validates this file against those limits.
 
 export const person = {
   name: 'Jayprakash Behera',
@@ -10,6 +14,8 @@ export const person = {
     'Full stack developer for AI-powered products and secure systems — taking them from architecture to production.',
   summary:
     'I build AI-powered applications, secure multi-role backends and scalable SaaS platforms with React.js, Node.js, Python, Docker and AWS — and I own both the architecture and the delivery.',
+  // Painted along the gate's top container
+  specialties: ['Full stack', 'AI', 'Security'],
   coreStack: ['React.js', 'Node.js', 'Python', 'Docker', 'AWS'],
   security: ['JWT auth on every request', 'RBAC — least privilege by role', 'Activity logging & integrity checks', 'Multi-role workflows, designed in'],
   ai: ['LLM features via OpenRouter', 'AI grounded in product data', 'Python · FastAPI · Node.js services'],
@@ -94,12 +100,20 @@ export const availability = {
 
 export const experience = {
   client: 'Dukaan Dost',
+  // Short code stencilled on the module containers (DKD-01, DKD-02, …)
+  code: 'DKD',
   company: 'Arkine Technologies',
   location: 'Mumbai · Remote',
   start: '09/2025',
   end: 'Present',
   brief: 'Scaling a multi-module SaaS platform spanning inventory, task, vendor and order systems.',
+  // One container per module hangs from the API gantry in the loading bay
   modules: ['Inventory', 'Tasks', 'Vendors', 'Orders'],
+  // The gantry beam every module hangs from, and the data stores it's piped into (one tank each)
+  architecture: {
+    gateway: 'REST API · JWT + RBAC',
+    stores: ['Redis', 'MongoDB'],
+  },
   headline: {
     value: '30–40%',
     label: 'API performance gain after introducing a Redis caching layer',
@@ -124,24 +138,34 @@ export interface ProjectLink {
   kind: 'live' | 'github';
 }
 
-export interface Project {
+// A project as you write it below. Only id, title, tagline, summary, stack and highlights are required.
+export interface ProjectEntry {
+  // Unique, lowercase, letters/numbers/hyphens: used for the page anchor and the photograph's file name
   id: string;
-  code: string;
+  // Container ID stencilled on the stack (e.g. EDX-01). Left out, it's made from the title and position.
+  code?: string;
   title: string;
   tagline: string;
   summary: string;
   stack: string[];
   highlights: string[];
-  // Only real numbers — leave empty rather than inventing one
-  metrics: { value: string; label: string }[];
-  instrument: Instrument;
-  links: ProjectLink[];
+  // Only real numbers — leave it out rather than inventing one
+  metrics?: { value: string; label: string }[];
+  // The little diagram on the manifest's right-hand side. Left out, the manifest just shows stack and readings.
+  instrument?: Instrument;
+  // First link becomes the manifest's button. None: the button offers a live demo via the contact form.
+  links?: ProjectLink[];
+}
+
+// What the site reads: every optional field filled in
+export interface Project extends Required<Omit<ProjectEntry, 'instrument'>> {
+  instrument?: Instrument;
 }
 
 // TODO: set the EduExamine live URL — until then its CTA routes visitors to the contact page.
 const EDUEXAMINE_LIVE_URL = '';
 
-export const projects: Project[] = [
+const PROJECTS: ProjectEntry[] = [
   {
     id: 'eduexamine',
     code: 'EDX-01',
@@ -217,7 +241,7 @@ export const projects: Project[] = [
     },
     links: [{ label: 'View source on GitHub', href: 'https://github.com/Jaypee-2003/SmartFinanceCalc', kind: 'github' }],
   },
-  // Earlier client work. The old GitHub URLs (github.com/jaypeebehera/…) return 404, so only live sites are linked.
+  // Earlier client work. The old GitHub URLs (github.com/jaypeebehera/…) return 404, so only the live site is linked.
   {
     id: 'khojpandit',
     code: 'KHP-04',
@@ -239,28 +263,21 @@ export const projects: Project[] = [
     },
     links: [{ label: 'Visit live site', href: 'https://khojpandit.com', kind: 'live' }],
   },
-  {
-    id: 'cleandirty',
-    code: 'CDA-05',
-    title: 'CleanDirty.ai',
-    tagline: 'Subscription storytelling platform',
-    summary: 'A subscription-based storytelling platform with mobile-first design.',
-    stack: ['Next.js', 'TypeScript', 'Tailwind', 'Node.js'],
-    highlights: [
-      'Personalized reading experience',
-      'Engaging visuals for long-form content',
-      'User-centric, mobile-first design',
-    ],
-    metrics: [],
-    instrument: {
-      kind: 'reader',
-      title: 'Reading view',
-      caption: 'Long-form · mobile',
-    },
-    // Currently redirects to moonkind.ai
-    links: [{ label: 'Visit live site', href: 'https://cleandirty.ai', kind: 'live' }],
-  },
 ];
+
+// Container code from the title's first letters and the position in the list: "Smart Finance Calc", 3 → SFC-03
+const autoCode = (title: string, index: number): string => {
+  const words = title.replace(/[^A-Za-z0-9 ]/g, ' ').trim().split(/\s+/);
+  const letters = (words.length > 1 ? words.map((w) => w[0]).join('') : words[0].replace(/[aeiou]/gi, '')) || 'PRJ';
+  return `${letters.slice(0, 3).toUpperCase().padEnd(3, 'X')}-${String(index + 1).padStart(2, '0')}`;
+};
+
+export const projects: Project[] = PROJECTS.map((p, i) => ({
+  ...p,
+  code: p.code ?? autoCode(p.title, i),
+  metrics: p.metrics ?? [],
+  links: p.links ?? [],
+}));
 
 export interface SkillGroup {
   name: string;

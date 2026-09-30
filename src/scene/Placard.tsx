@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef } from 'react';
+import React, { ReactNode, useEffect, useMemo, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Group, Vector3 } from 'three';
@@ -65,6 +65,24 @@ export const Placard: React.FC<PlacardProps> = ({ stop, size, width, position, r
     }
   });
 
+  // Development: name any sign whose content no longer fits it (the content check prevents most of these;
+  // see scripts/check-content.js and CONTENT.md)
+  const inner = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return undefined;
+    const id = window.setTimeout(() => {
+      const sign = inner.current?.firstElementChild as HTMLElement | null;
+      if (!sign) return;
+      const over = sign.scrollHeight - sign.clientHeight;
+      if (over > 2) {
+        const title = sign.querySelector('h1, h2, h3')?.textContent ?? stop;
+        // eslint-disable-next-line no-console
+        console.warn(`[content] The "${title}" sign overflows by ${over}px — shorten its text (limits: CONTENT.md)`);
+      }
+    }, 2500);
+    return () => window.clearTimeout(id);
+  }, [stop]);
+
   if (stillStop) return null;
 
   return (
@@ -86,7 +104,7 @@ export const Placard: React.FC<PlacardProps> = ({ stop, size, width, position, r
         ref={content}
         style={{ width: size.width, height: size.height }}
       >
-        <div style={{ width: '100%', height: '100%', ...placardContainer }} onFocus={() => scrollToStop(stop)}>
+        <div ref={inner} style={{ width: '100%', height: '100%', ...placardContainer }} onFocus={() => scrollToStop(stop)}>
           {children}
         </div>
       </Html>

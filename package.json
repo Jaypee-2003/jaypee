@@ -20,6 +20,8 @@
   },
   "scripts": {
     "start": "craco start",
+    "check": "node scripts/check-content.js",
+    "prebuild": "node scripts/check-content.js",
     "build": "craco build",
     "stills": "node scripts/render-stills.js"
   },

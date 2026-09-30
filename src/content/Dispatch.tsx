@@ -6,7 +6,8 @@ import { Label, Lamp, LocalTime, material, placardBase, solidButton } from './ki
 
 export const DISPATCH_WINDOW = { width: 560, height: 522 };
 export const ORDER_SLIP = { width: 420, height: 500 };
-export const EDUCATION_PLAQUE = { width: 330, height: 172 };
+// Grows with the number of entries: heading and padding, then one ruled row each
+export const EDUCATION_PLAQUE = { width: 330, height: 78 + 47 * education.length };
 
 /* ───────────────────────── Dispatch window ───────────────────────── */
 

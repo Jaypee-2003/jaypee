@@ -1,8 +1,8 @@
-import React, { CSSProperties, ReactNode, useEffect, useLayoutEffect } from 'react';
+import React, { CSSProperties, ReactNode, useEffect, useLayoutEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { projects } from '../data/profile';
-import { StopId } from '../site/stops';
+import { StopId, stillName } from '../site/stops';
 import { setActiveStop, setScroller } from '../site/store';
 import { TimeOfDay, useTimeOfDay } from '../site/timeOfDay';
 import { GateSign } from '../content/GateSign';
@@ -21,7 +21,7 @@ import { DispatchWindow, EducationPlaque, OrderSlip } from '../content/Dispatch'
 
 // Night photographs by default; the light theme shows the same places by day (scripts/render-stills.js)
 const still = (id: StopId, time: TimeOfDay): string =>
-  `${process.env.PUBLIC_URL}/stills/${time === 'day' ? 'day/' : ''}${id}.jpg`;
+  `${process.env.PUBLIC_URL}/stills/${time === 'day' ? 'day/' : ''}${stillName(id)}.jpg`;
 
 /* ───────────────────────── Layout ───────────────────────── */
 
@@ -140,8 +140,25 @@ type PhotoProps = {
   captionTop?: boolean;
 };
 
+// Until a place has been photographed (a project just added, before the next deploy renders it), it shows
+// as a plate of corrugated steel rather than a broken image
+const Unphotographed = styled.div`
+  width: 100%;
+  aspect-ratio: var(--ratio, 16 / 9);
+  max-height: var(--max-height, none);
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 6px, rgb(0 0 0 / 0.12) 6px 14px),
+    linear-gradient(180deg, #2a3342, #161d29);
+
+  @media (max-width: 700px) {
+    aspect-ratio: var(--ratio-sm, 4 / 3);
+  }
+`;
+
 const Picture: React.FC<PhotoProps> = ({ id, alt, caption, ratio, ratioSm, focus, maxHeight, className, eager, captionTop }) => {
   const time = useTimeOfDay();
+  const src = still(id, time);
+  const [missing, setMissing] = useState<string | null>(null);
   return (
     <Photo
       className={className}
@@ -155,7 +172,11 @@ const Picture: React.FC<PhotoProps> = ({ id, alt, caption, ratio, ratioSm, focus
         } as CSSProperties
       }
     >
-      <img src={still(id, time)} alt={alt} loading={eager ? 'eager' : 'lazy'} width={1600} height={900} />
+      {missing === src ? (
+        <Unphotographed role="img" aria-label={alt} />
+      ) : (
+        <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} width={1600} height={900} onError={() => setMissing(src)} />
+      )}
       <figcaption>{caption}</figcaption>
     </Photo>
   );

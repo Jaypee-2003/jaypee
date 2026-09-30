@@ -40,7 +40,7 @@ Each sign is real HTML set into 3D space, so it has depth, perspective and scale
 | 03 | **Loading bay** | The Dukaan Dost case study, with the architecture built full size (see below). | `#/experience` |
 | 04 | **Ops tower** | AI in production: the terminal's control tower, with an LED operations display covering how the AI is built and what's shipped (EduExamine's assistant, Devanta's generator). | `#/ai-security` |
 | 04 | **Scanner portal** | Security: the lane runs through a container scanner. Its inspection board covers the practices and the evidence behind them, plus a certificate of what this site itself does. | `#/ai-security` |
-| 05 | **Project row** | One container stack per project with its name painted on the steel and a paper manifest on a board in front: EduExamine, Devanta, SmartFinanceCalc, KhojPandit, CleanDirty.ai. | `#/projects` |
+| 05 | **Project row** | One container stack per project with its name painted on the steel and a paper manifest on a board in front: EduExamine, Devanta, SmartFinanceCalc and KhojPandit. The row grows or shrinks with the project list. | `#/projects` |
 | 06 | **Signal gantry** | Skills: one signal head per group, one lit lamp per skill. | `#/skills` |
 | 07 | **Dispatch office** | Hire details on the window, the contact form as an order slip, education on a plaque. | `#/contact` |
 
@@ -51,7 +51,7 @@ The nav, links and URLs jump the camera to a stop, and the URL follows you as yo
 <table>
   <tr>
     <td width="50%"><img src="public/stills/bay.jpg" alt="The loading bay: four module containers hanging from a gantry marked REST API · JWT + RBAC, with Redis and MongoDB tanks behind" /></td>
-    <td width="50%"><img src="public/stills/file-2.jpg" alt="DEVANTA painted along a container in the project row, the next stacks receding behind it" /></td>
+    <td width="50%"><img src="public/stills/project-devanta.jpg" alt="DEVANTA painted along a container in the project row, the next stacks receding behind it" /></td>
   </tr>
   <tr>
     <td width="50%"><img src="public/stills/signals.jpg" alt="The signal gantry over the lane, one amber lamp lit per skill" /></td>
@@ -163,7 +163,7 @@ In both views, every word is real, selectable text. Headings are in order, links
 
 ```
 src/
-├── data/profile.ts        ← all portfolio content lives here (one source for both views)
+├── data/profile.ts        ← all portfolio content lives here (one source for both views; see CONTENT.md)
 ├── content/               ← the signs: gate sign, notice board, lightbox, manifests, dispatch window, order slip
 ├── scene/                 ← the 3D yard
 │   ├── SceneSite.tsx      ← canvas, scroll track, sign slots, error fallback
@@ -176,29 +176,31 @@ src/
 ├── site/                  ← stops and routes, view mode, active-stop store, URL sync
 ├── components/Navbar.tsx
 └── styles/theme.ts        ← ink · bone · amber, type, layout
-scripts/render-stills.js   ← renders the plain view's location photos from the 3D scene
-public/stills/             ← those photos by night, and by day in stills/day/ (committed)
+src/scene/layout.ts        ← where things stand, computed from the content (the yard grows with it)
+scripts/check-content.js   ← validates profile.ts against each sign's size (runs before every build)
+scripts/render-stills.js   ← photographs every place for the plain view (runs on every deploy)
+public/stills/             ← a local copy of those photographs, used by this README
 ```
 
 ## Run it locally
 
-Requires Node 20+.
+Requires Node 20+ (CI uses 24).
 
 ```bash
 npm install
 npm start          # dev server with hot reload
-npm run build      # production build in ./build (the same check CI runs: CI=true npm run build)
+npm run check      # validate src/data/profile.ts (also runs before every build)
+npm run build      # production build in ./build (CI runs CI=true npm run build)
+npm run stills     # photograph every place for the plain view (needs Chrome; the deploy does this for you)
 ```
 
-**Editing content:** everything visible (profile, experience, projects, skills, education, contact) comes from [`src/data/profile.ts`](src/data/profile.ts). Change it there and both views update.
+## Editing content
 
-**Changing the 3D scene:** the plain view's location photos are rendered from the scene, not drawn by hand, as a night set (`public/stills/`) and a day set (`public/stills/day/`). After moving the camera, changing a location or adjusting the lighting, re-render both:
+Everything visitors read lives in [`src/data/profile.ts`](src/data/profile.ts), and **the yard lays itself out from it**. Add a project and a new container stack, manifest, camera stop and photograph appear, and everything past the row moves down the lane to make room. Remove one and its place closes up. Loading-bay modules, skill groups and education entries resize their signs the same way.
 
-```bash
-npm run build && npm run stills && npm run build
-```
+`npm run check` validates the file against each sign's size (it also runs before every build and deploy), and the deploy renders the new photographs itself. **Editing the data file and pushing is all it takes.**
 
-`stills` uses your local Chrome through playwright-core. Set `CHROME_PATH` if it isn't in the default macOS location. Then commit the updated `public/stills/`.
+**[CONTENT.md](CONTENT.md)** has the field-by-field guide, a copy-paste project template, and every limit.
 
 ## Deployment
 
@@ -206,14 +208,23 @@ Every push to `main` deploys automatically. The workflow in [`.github/workflows/
 
 1. installs exact versions with `npm ci`
 2. audits the shipped dependencies (a high-severity advisory stops the deploy)
-3. builds with `CI=true` (warnings fail the build)
-4. publishes `./build` to the `gh-pages` branch
+3. checks the content, then builds with `CI=true` (content that doesn't fit, or any warning, stops the deploy)
+4. photographs every place in the yard for the plain view, by night and by day, into the build (about 6 minutes)
+5. publishes `./build` to the `gh-pages` branch
 
 The workflow's actions are pinned to commit SHAs, and its token can only write repository contents. A separate [CodeQL workflow](.github/workflows/codeql.yml) scans the code on every push.
 
 GitHub Pages serves that branch at **[jaypee-2003.github.io/jaypee](https://jaypee-2003.github.io/jaypee)**. You can also rerun it by hand from the Actions tab.
 
 > One-time setup, already done: **Settings → Pages → Source: Deploy from a branch → `gh-pages` / root**.
+
+## Documentation
+
+| File | For |
+|---|---|
+| [CONTENT.md](CONTENT.md) | Adding, removing and editing content: the project template, field guide and every limit |
+| [SECURITY.md](SECURITY.md) | How the site is hardened, its limits, and how to report a vulnerability |
+| This README | What the site is, how it works, running and deploying it |
 
 ## Built with
 

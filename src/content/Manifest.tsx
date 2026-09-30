@@ -4,7 +4,7 @@ import { theme } from '../styles/theme';
 import { Instrument, Project } from '../data/profile';
 import { Label, material, placardBase, solidButton } from './kit';
 
-export const MANIFEST = { width: 740, height: 372 };
+export const MANIFEST = { width: 740, height: 392 };
 
 // A paper cargo manifest clipped to each project's container
 const Sheet = styled.article`
@@ -221,10 +221,12 @@ export const Manifest: React.FC<{ project: Project; index: number }> = ({ projec
       </div>
 
       <Side>
-        <div>
-          <Label as="h4">{project.instrument.title}</Label>
-          <InstrumentLines instrument={project.instrument} />
-        </div>
+        {project.instrument && (
+          <div>
+            <Label as="h4">{project.instrument.title}</Label>
+            <InstrumentLines instrument={project.instrument} />
+          </div>
+        )}
         <div>
           <Label as="h4">Stack</Label>
           <StackLine>{project.stack.join(' · ')}</StackLine>

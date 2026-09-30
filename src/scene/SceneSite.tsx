@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { Canvas, useThree } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';
 import { theme } from '../styles/theme';
-import { anchorVh, STOPS, StopId, stopAtVh, TOTAL_VH } from '../site/stops';
+import { anchorVh, STILLS, STOPS, StopId, stopAtVh, TOTAL_VH } from '../site/stops';
 import { setActiveStop, setScroller } from '../site/store';
 import { stillStop } from '../site/mode';
 import { SkillsBoard } from '../content/SkillsBoard';
@@ -93,7 +93,11 @@ const World: React.FC<{ still: StopId | null; onReady: () => void }> = ({ still,
       if (++frames < 3) id = requestAnimationFrame(tick);
       else {
         onReady();
-        if (still) document.documentElement.dataset.still = 'ready';
+        if (still) {
+          // The still-rendering script reads what to render from here, so it always matches the content
+          document.documentElement.dataset.stills = JSON.stringify(STILLS);
+          document.documentElement.dataset.still = 'ready';
+        }
       }
     };
     id = requestAnimationFrame(tick);

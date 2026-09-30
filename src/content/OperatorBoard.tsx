@@ -5,7 +5,7 @@ import profileImage from '../assets/images/profile.jpg';
 import { experience, person } from '../data/profile';
 import { Label, material, placardBase } from './kit';
 
-export const OPERATOR_BOARD = { width: 900, height: 486 };
+export const OPERATOR_BOARD = { width: 900, height: 500 };
 
 // A dark steel notice board by the lane: who runs this yard
 const Board = styled.section`

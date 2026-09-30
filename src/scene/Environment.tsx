@@ -26,6 +26,8 @@ import { DAY_SKY, daylight, LampGlow, lampShare, MOON_DIR, NIGHT_SKY, SUN_DIR } 
 import { Sky } from './Sky';
 import { Yardwork } from './Yardwork';
 import { Beams, City } from './lights';
+import { BAY, fileZ, past, QUAY_Z, ROW_END, SIGNALS } from './layout';
+import { projects } from '../data/profile';
 
 // The yard around the stops: ground, lanes, stacked cargo, lamp poles, cranes, the quay and the sky glow.
 
@@ -38,13 +40,13 @@ const rng = (seed: number) => () => {
 // Keep-out zones (x0, x1, z0, z1) where the stops' own objects stand, and the camera lane
 const CLEAR: [number, number, number, number][] = [
   [-26, 9, -12, 12], // the gate and the name wall
-  [1.6, 16, -244, 30], // the lane the camera travels
+  [1.6, 16, past(-244), 30], // the lane the camera travels
   [16, 26, -24, -10], // notice board
-  [-16, 10, -56, -30], // loading bay
+  [Math.min(-16, BAY.beam.x0 - 3), 10, -56, -30], // loading bay
   [16, 26, -92, -56], // AI control tower
   [-8, 1.6, -92, -58], // security checkpoint
-  [16, 24, -174, -90], // project containers
-  [-2, 24, -239, -184], // signal gantry and dispatch office
+  [16, 24, ROW_END - 10, -90], // project containers
+  [Math.min(-2, SIGNALS.towerX[0] - 1), Math.max(24, SIGNALS.towerX[1] + 1), past(-239), past(-184)], // signal gantry and dispatch office
 ];
 const clear = (x: number, z: number, hx: number, hz: number): boolean =>
   !CLEAR.some(([x0, x1, z0, z1]) => x + hx > x0 && x - hx < x1 && z + hz > z0 && z - hz < z1);
@@ -82,10 +84,10 @@ const buildStacks = (): Box[] => {
     return out;
   };
   // Blocks of rows either side of the lane, containers end to end along Z
-  block(range(-9, -30, -2.6), range(-18, -224, -13));
-  block(range(-38, -52, -2.6), range(-10, -224, -13));
-  block(range(26, 44, 2.6), range(8, -224, -13));
-  block(range(52, 64, 2.6), range(0, -214, -13));
+  block(range(-9, -30, -2.6), range(-18, past(-224), -13));
+  block(range(-38, -52, -2.6), range(-10, past(-224), -13));
+  block(range(26, 44, 2.6), range(8, past(-224), -13));
+  block(range(52, 64, 2.6), range(0, past(-214), -13));
   // Rows behind the name wall run across the view
   range(-7.2, -14, -2.6).forEach((z, row) =>
     range(-24, 0, 12.4).forEach((x) => {
@@ -98,23 +100,23 @@ const buildStacks = (): Box[] => {
 
 /* ───────── lamp poles along the lane, placed in the gaps between stops ───────── */
 
+// Lamp poles along the lane: fixed ones before the project row, one every 24 m down its left side and one
+// between each pair of stacks on its right, and the ones past it, which move with the row's length
 const POLES: [number, number][] = [
   [0.8, -16],
   [0.8, -54],
-  [0.8, -94],
-  [0.8, -118],
-  [0.8, -142],
-  [0.8, -166],
-  [0.8, -206],
   [15.6, -2],
   [15.6, -30],
   [15.6, -50],
-  [15.6, -108],
-  [15.6, -124],
-  [15.6, -140],
-  [15.6, -156],
-  [15.6, -176],
-  [15.6, -212],
+  ...(() => {
+    const left: [number, number][] = [];
+    for (let z = -94; z >= ROW_END - 2; z -= 24) left.push([0.8, z]);
+    return left;
+  })(),
+  ...projects.slice(0, -1).map((_, i): [number, number] => [15.6, fileZ(i) - 8]),
+  [0.8, past(-206)],
+  [15.6, past(-176)],
+  [15.6, past(-212)],
 ];
 const POLE_HEIGHT = 11;
 
@@ -199,20 +201,20 @@ const boxEdges = (w: number, h: number, d: number, x: number, y: number, z: numb
 const quayCrane = (cx: number): BufferGeometry[] => {
   const parts: BufferGeometry[] = [];
   const legs = [
-    [-8, -228],
-    [8, -228],
-    [-8, -240],
-    [8, -240],
+    [-8, past(-228)],
+    [8, past(-228)],
+    [-8, past(-240)],
+    [8, past(-240)],
   ];
   legs.forEach(([dx, z]) => parts.push(boxEdges(1.2, 36, 1.2, cx + dx, 18, z)));
   // Leg bracing
-  [-228, -240].forEach((z) => [8, 20, 30].forEach((y) => parts.push(boxEdges(16, 0.8, 0.8, cx, y, z))));
+  [past(-228), past(-240)].forEach((z) => [8, 20, 30].forEach((y) => parts.push(boxEdges(16, 0.8, 0.8, cx, y, z))));
   // Boom: back over the quay, out over the water
-  parts.push(boxEdges(3, 2.4, 78, cx, 37.5, -260));
-  for (let z = -224; z > -298; z -= 6) parts.push(boxEdges(3, 2.4, 0.2, cx, 37.5, z));
+  parts.push(boxEdges(3, 2.4, 78, cx, 37.5, past(-260)));
+  for (let z = past(-224); z > past(-298); z -= 6) parts.push(boxEdges(3, 2.4, 0.2, cx, 37.5, z));
   // A-frame
-  parts.push(boxEdges(1, 20, 1, cx - 3, 48, -234), boxEdges(1, 20, 1, cx + 3, 48, -234));
-  parts.push(boxEdges(8, 1, 1, cx, 58, -234));
+  parts.push(boxEdges(1, 20, 1, cx - 3, 48, past(-234)), boxEdges(1, 20, 1, cx + 3, 48, past(-234)));
+  parts.push(boxEdges(8, 1, 1, cx, 58, past(-234)));
   return parts;
 };
 
@@ -245,11 +247,11 @@ const Cranes: React.FC = () => {
   const warnings = useMemo(
     () =>
       CRANES_AT.flatMap((cx) => [
-        [cx, 58.8, -234],
-        [cx, 38.9, -298],
-        [cx, 38.9, -222],
-        [cx - 8, 36.3, -228],
-        [cx + 8, 36.3, -228],
+        [cx, 58.8, past(-234)],
+        [cx, 38.9, past(-298)],
+        [cx, 38.9, past(-222)],
+        [cx - 8, 36.3, past(-228)],
+        [cx + 8, 36.3, past(-228)],
       ]) as [number, number, number][],
     [],
   );
@@ -271,7 +273,6 @@ const Cranes: React.FC = () => {
 
 /* ───────── ground, lane paint, quay, water and the sky glow ───────── */
 
-const QUAY_Z = -235;
 
 // Surfaces that only look this dark because the night is: by day they take their real colours
 const SURFACE = {
@@ -359,7 +360,7 @@ const Horizon: React.FC = () => {
     material.uniforms.uNight.value = lampShare();
   });
   return (
-    <mesh position={[5, 50, -620]} material={material}>
+    <mesh position={[5, 50, QUAY_Z - 385]} material={material}>
       <planeGeometry args={[1800, 130]} />
     </mesh>
   );

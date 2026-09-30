@@ -6,6 +6,7 @@ import { experience } from '../../data/profile';
 import { CaseLightbox, CASE_LIGHTBOX } from '../../content/CaseLightbox';
 import { stillStop } from '../../site/mode';
 import { PAL, Paint as PaintName } from '../palette';
+import { BAY } from '../layout';
 import { LampGlow, useLampLight } from '../daylight';
 import { useStaticSpotShadow } from '../shadows';
 import { Placard } from '../Placard';
@@ -16,13 +17,15 @@ import { Container, IdMark, Paint, Post } from '../props';
 // The amber lightbox beside it carries the case study.
 
 const Z = -46; // container fronts face +Z, toward the lane
-const MODULE_X = [-9.6, -6.2, -2.8, 0.6];
-const MODULE_PAINT: PaintName[] = ['ink', 'steel', 'bone', 'copper'];
-const BEAM = { x0: -12.2, x1: 3.2, y: 6.3 };
-const TANKS: { x: number; label: string; paint: PaintName }[] = [
-  { x: -9.4, label: 'REDIS', paint: 'copper' },
-  { x: -3.6, label: 'MONGODB', paint: 'steel' },
-];
+const { moduleX: MODULE_X, beam: BEAM } = BAY;
+const PAINTS: PaintName[] = ['ink', 'steel', 'bone', 'copper'];
+const MODULE_PAINT = MODULE_X.map((_, i) => PAINTS[i % PAINTS.length]);
+const TANK_PAINTS: PaintName[] = ['copper', 'steel', 'ink'];
+const TANKS = experience.architecture.stores.map((label, k) => ({
+  x: BAY.tankX[k],
+  label: label.toUpperCase(),
+  paint: TANK_PAINTS[k % TANK_PAINTS.length],
+}));
 const TANK_Z = Z - 6.2;
 
 const LIGHTBOX = { at: [7.9, 3.15, -37.4] as [number, number, number], rotY: 0.3, width: 3.7 };
@@ -75,7 +78,12 @@ export const Bay: React.FC = () => {
           >
             {name.toUpperCase()}
           </Paint>
-          <IdMark code={`DKD-0${i + 1}`} x={1.35} z={1.225} color={MODULE_PAINT[i] === 'bone' ? PAL.stencilDark : undefined} />
+          <IdMark
+            code={`${experience.code}-${String(i + 1).padStart(2, '0')}`}
+            x={1.35}
+            z={1.225}
+            color={MODULE_PAINT[i] === 'bone' ? PAL.stencilDark : undefined}
+          />
         </Container>
       ))}
 
@@ -86,7 +94,7 @@ export const Bay: React.FC = () => {
         <meshStandardMaterial color={PAL.paint.dark} roughness={0.6} metalness={0.5} />
       </mesh>
       <Paint position={[beamX, BEAM.y, Z + 0.51]} fontSize={0.5} fit={12}>
-        REST API · JWT + RBAC
+        {experience.architecture.gateway}
       </Paint>
       <mesh position={[beamX, BEAM.y - 0.47, Z + 0.1]}>
         <boxGeometry args={[beamLength - 0.6, 0.05, 0.3]} />

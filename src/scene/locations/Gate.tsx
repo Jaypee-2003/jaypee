@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Mesh, MeshStandardMaterial, Object3D, PointLight, SpotLight, Vector3 } from 'three';
 import { GateSign, GATE_SIGN } from '../../content/GateSign';
+import { person } from '../../data/profile';
 import { stillStop } from '../../site/mode';
 import { PAL } from '../palette';
 import { LampGlow, useLampLight } from '../daylight';
@@ -83,16 +84,16 @@ export const Gate: React.FC = () => (
     <Container paint="steel" position={[-15, 3.885, C]} />
     <Container paint="copper" position={[-2.6, 3.885, C]}>
       <Paint position={[1.1, -0.02, 1.225]} fontSize={2.5} fit={9.6}>
-        BEHERA
+        {person.lastName.toUpperCase()}
       </Paint>
     </Container>
     <Container paint="ink" position={[-5.6, 6.475, C]}>
       <Paint position={[0, -0.02, 1.225]} fontSize={2.5} fit={11.3}>
-        JAYPRAKASH
+        {person.firstName.toUpperCase()}
       </Paint>
     </Container>
     <Container paint="bone" position={[-18, 6.475, C]}>
-      <IdMark code="FULL STACK · AI · SECURITY" x={5.8} z={1.225} color={PAL.stencilDark} />
+      <IdMark code={person.specialties.join(' · ').toUpperCase()} x={5.8} z={1.225} color={PAL.stencilDark} />
     </Container>
 
     {/* The gate sign on two legs, the status lamp on its top edge */}

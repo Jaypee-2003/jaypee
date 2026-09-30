@@ -17,6 +17,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { PAL } from './palette';
 import { Container, Paint } from './props';
 import { daylight } from './daylight';
+import { fileZ, past, QUAY_Z } from './layout';
+import { projects } from '../data/profile';
 
 // The working yard between the stops: concrete barriers along the lane, cones, pallets, crates and
 // drums, a reach stacker moving a box, the lane's paint, and wet patches that catch the lamps at night.
@@ -70,8 +72,8 @@ const rng = (seed: number) => () => {
 
 const BARRIER_RUNS: { x: number; from: number; count: number }[] = [
   { x: -0.35, from: -19, count: 3 },
-  { x: -0.35, from: -171, count: 4 },
-  { x: 16.5, from: -169.5, count: 4 },
+  { x: -0.35, from: past(-171), count: 4 },
+  { x: 16.5, from: past(-169.5), count: 4 },
 ];
 const CONCRETE = ['#8E8B84', '#85827B', '#96928A', '#7F7C76'];
 
@@ -112,9 +114,9 @@ const CONES: [number, number][] = [
   [13.5, 7.7],
   [13.3, 6.2],
   ...[0, 1, 2, 3, 4].map((i): [number, number] => [4.2, -48 - i * 2]),
-  [2.7, -185.5],
-  [2.8, -187.5],
-  [2.6, -189.5],
+  [2.7, past(-185.5)],
+  [2.8, past(-187.5)],
+  [2.6, past(-189.5)],
 ];
 
 const buildCones = (): BufferGeometry => {
@@ -142,13 +144,13 @@ const pallet = (x: number, y: number, z: number, rotY: number, color: string): B
 const PALLET_STACKS: { at: V3; count: number; rot: number }[] = [
   { at: [5.2, 0, -49.5], count: 7, rot: 0.05 },
   { at: [5.35, 0, -51], count: 4, rot: -0.08 },
-  { at: [17.7, 0, -230.2], count: 9, rot: 0.1 },
+  { at: [17.7, 0, past(-230.2)], count: 9, rot: 0.1 },
   { at: [21.4, 0, -20.2], count: 5, rot: -0.3 },
 ];
 const CRATES: { at: V3; size: number }[] = [
-  { at: [17.8, 0, -227.9], size: 1.1 },
-  { at: [17.9, 1.1, -228.0], size: 0.9 },
-  { at: [18.9, 0, -228.3], size: 1.0 },
+  { at: [17.8, 0, past(-227.9)], size: 1.1 },
+  { at: [17.9, 1.1, past(-228.0)], size: 0.9 },
+  { at: [18.9, 0, past(-228.3)], size: 1.0 },
   { at: [3.9, 0, -50.4], size: 0.9 },
 ];
 
@@ -171,7 +173,7 @@ const buildWood = (): BufferGeometry => {
 const DRUM_CLUSTERS: { at: [number, number]; count: number }[] = [
   { at: [4.3, -40.2], count: 5 },
   { at: [21, -24.6], count: 4 },
-  { at: [-0.9, -186.5], count: 6 },
+  { at: [-0.9, past(-186.5)], count: 6 },
 ];
 const DRUM_PAINT = [PAL.paint.steel, PAL.paint.copper, PAL.paint.ink, '#5A6B52'];
 
@@ -254,17 +256,17 @@ const carried = (): V3 => {
 const LANE_LINES = [1.35, 15.25];
 const ZEBRAS: { z: number; x0: number; x1: number }[] = [
   { z: 1, x0: 1.8, x1: 14.8 },
-  { z: -180.5, x0: 1.8, x1: 14.8 },
+  { z: past(-180.5), x0: 1.8, x1: 14.8 },
 ];
 const STOP_BARS: { x0: number; x1: number; z: number }[] = [
   { x0: 1.6, x1: 8.2, z: 4.1 },
-  { x0: 1.6, x1: 15, z: -177.2 },
+  { x0: 1.6, x1: 15, z: past(-177.2) },
 ];
 const ARROWS: [number, number][] = [
   [8.4, -26],
   [8.4, -58],
-  [8.4, -168],
-  [8.4, -206],
+  [8.4, past(-168)],
+  [8.4, past(-206)],
 ];
 
 const arrow = (): Shape => {
@@ -292,18 +294,17 @@ const buildMarkings = (): { white: BufferGeometry; yellow: BufferGeometry } => {
     // Pointing down the lane (-z), the way the camera travels
     white.push(tint(new ShapeGeometry(arrow()).rotateX(-Math.PI / 2).translate(x, 0.017, z), PAL.stencil)),
   );
-  const yellow = LANE_LINES.map((x) => tint(flat(0.14, 240, x, -108), '#C39A43'));
+  const yellow = LANE_LINES.map((x) => tint(flat(0.14, 5 - QUAY_Z, x, (19 + QUAY_Z) / 2), '#C39A43'));
   return { white: merge(white), yellow: merge(yellow) };
 };
 
 const GROUND_WORDS: { text: string; at: [number, number] }[] = [
   { text: 'SLOW', at: [5.2, 10.8] },
   { text: 'A 12', at: [12.8, -31] },
-  { text: 'B 04', at: [4.4, -104] },
-  { text: 'C 07', at: [4.4, -132] },
-  { text: 'C 15', at: [4.4, -156] },
-  { text: 'STOP', at: [5.2, -175.2] },
-  { text: 'QUAY', at: [5.2, -212] },
+  // A bay code on the lane beside each project's stack
+  ...projects.map((_, i) => ({ text: `B ${String(i + 1).padStart(2, '0')}`, at: [4.4, fileZ(i) - 4] as [number, number] })),
+  { text: 'STOP', at: [5.2, past(-175.2)] },
+  { text: 'QUAY', at: [5.2, past(-212)] },
 ];
 
 const Markings: React.FC = () => {
@@ -333,9 +334,9 @@ const PUDDLES: [number, number, number, number, number][] = [
   [13.9, -29.5, 1.6, 0.9, -0.2],
   [2.6, -120, 1.2, 0.7, 0.5],
   [12.4, -151.5, 1.4, 0.8, 0.1],
-  [5.6, -204, 1.8, 1, -0.4],
+  [5.6, past(-204), 1.8, 1, -0.4],
   [9.3, 9.6, 1.1, 0.6, 0.2],
-  [2.9, -223.5, 1.3, 0.7, 0.6],
+  [2.9, past(-223.5), 1.3, 0.7, 0.6],
 ];
 
 const buildPuddles = (): BufferGeometry =>

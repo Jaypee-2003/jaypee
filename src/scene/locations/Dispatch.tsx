@@ -12,16 +12,17 @@ import { PAL } from '../palette';
 import { Placard } from '../Placard';
 import { Halos, Paint, Post } from '../props';
 import { Beams } from '../lights';
+import { past } from '../layout';
 import { LampGlow, LampPoint } from '../daylight';
 
 // The end of the line: the dispatch office on the quay, water and cranes behind it. The window carries
 // the hire details, the order slip on the stand in front is the contact form, and the education plaque
 // is screwed to the wall beside the window.
 
-const FRONT_Z = -229.5;
+const FRONT_Z = past(-229.5);
 const CABIN = { x: 9.8, w: 13, h: 6, d: 5 };
 const WINDOW = { at: [8, 2.72, FRONT_Z + 0.02] as [number, number, number], width: 5 };
-const SLIP = { at: [13.9, 1.9, -224.4] as [number, number, number], rotY: -0.3, width: 2.25 };
+const SLIP = { at: [13.9, 1.9, past(-224.4)] as [number, number, number], rotY: -0.3, width: 2.25 };
 const slipHeight = (SLIP.width * ORDER_SLIP.height) / ORDER_SLIP.width;
 const PLAQUE = { at: [12.4, 4.35, FRONT_Z + 0.02] as [number, number, number], width: 2.4 };
 const windowHeight = (WINDOW.width * DISPATCH_WINDOW.height) / DISPATCH_WINDOW.width;
