@@ -4,13 +4,14 @@
 
 # JAYPEE
 
-**Jayprakash Behera — Full Stack Developer**
+**Jayprakash Behera — Full Stack Developer · AI & Security**
 <br />
-SaaS platforms · backend systems · AI-powered products, from architecture to production.
+AI-powered products and secure systems, from architecture to production.
 
 **[jaypee-2003.github.io/jaypee](https://jaypee-2003.github.io/jaypee)** &nbsp;·&nbsp; Available for freelance & contract work
 
 [![Deploy to GitHub Pages](https://github.com/Jaypee-2003/jaypee/actions/workflows/deploy.yml/badge.svg)](https://github.com/Jaypee-2003/jaypee/actions/workflows/deploy.yml)
+[![CodeQL](https://github.com/Jaypee-2003/jaypee/actions/workflows/codeql.yml/badge.svg)](https://github.com/Jaypee-2003/jaypee/actions/workflows/codeql.yml)
 
 </div>
 
@@ -37,9 +38,11 @@ Each sign is real HTML set into 3D space, so it has depth, perspective and scale
 | 01 | **The gate** | The name on a floodlit container stack. The gate sign carries the availability status under a live amber lamp. | `#/` |
 | 02 | **Notice board** | Portrait, summary, and how the work splits between architecture and delivery. | `#/about` |
 | 03 | **Loading bay** | The Dukaan Dost case study, with the architecture built full size (see below). | `#/experience` |
-| 04 | **Project row** | One container stack per project with its name painted on the steel and a paper manifest on a board in front: EduExamine, Devanta, SmartFinanceCalc, KhojPandit, CleanDirty.ai. | `#/projects` |
-| 05 | **Signal gantry** | Skills: one signal head per group, one lit lamp per skill. | `#/skills` |
-| 06 | **Dispatch office** | Hire details on the window, the contact form as an order slip, education on a plaque. | `#/contact` |
+| 04 | **Ops tower** | AI in production: the terminal's control tower, with an LED operations display covering how the AI is built and what's shipped (EduExamine's assistant, Devanta's generator). | `#/ai-security` |
+| 04 | **Scanner portal** | Security: the lane runs through a container scanner. Its inspection board covers the practices and the evidence behind them, plus a certificate of what this site itself does. | `#/ai-security` |
+| 05 | **Project row** | One container stack per project with its name painted on the steel and a paper manifest on a board in front: EduExamine, Devanta, SmartFinanceCalc, KhojPandit, CleanDirty.ai. | `#/projects` |
+| 06 | **Signal gantry** | Skills: one signal head per group, one lit lamp per skill. | `#/skills` |
+| 07 | **Dispatch office** | Hire details on the window, the contact form as an order slip, education on a plaque. | `#/contact` |
 
 At the loading bay, four module containers (Inventory, Tasks, Vendors, Orders) hang from one `REST API · JWT + RBAC` gantry, piped into Redis and MongoDB tanks. An amber lightbox beside them carries the case study, including the 30–40% API gain.
 
@@ -55,6 +58,39 @@ The nav, links and URLs jump the camera to a stop, and the URL follows you as yo
     <td width="50%"><img src="public/stills/dispatch.jpg" alt="The dispatch office at the end of the quay, its window lit amber behind half-drawn blinds" /></td>
   </tr>
 </table>
+
+## AI and security
+
+The route stops twice for the two things this work is built around.
+
+- **AI in production:** model features built into real products, fed by the product's own data and running behind its sign-in. Evidence: EduExamine's academic assistant (OpenRouter APIs) and Devanta, which turns a GitHub profile into a deployable portfolio in under 60 seconds.
+- **Security designed in:** identity on every request (JWT), least privilege by role (RBAC), activity logging and integrity checks (EduExamine), and containerized delivery. Evidence: Dukaan Dost's multi-role APIs and EduExamine's exam platform.
+
+The claims stop at what shipped work shows; the content lives in [`src/data/profile.ts`](src/data/profile.ts).
+
+<table>
+  <tr>
+    <td width="50%"><img src="public/stills/tower.jpg" alt="The ops tower at night, its control cab lit amber by screens" /></td>
+    <td width="50%"><img src="public/stills/day/inspection.jpg" alt="The scanner portal spanning the lane by day, lettered Security inspection, every request checked" /></td>
+  </tr>
+</table>
+
+## This site is hardened too
+
+A portfolio that claims security should be able to show it. The site is static with no backend, and it's locked down as if it were production. [SECURITY.md](SECURITY.md) has the full list, the limits, and how to report a vulnerability.
+
+- **Content Security Policy:** scripts only from this site. No inline script, no `eval`, no workers, no plugins. Nothing can frame it or post anywhere.
+- **Trusted Types:** the DOM's script-injection sinks are locked. Only webpack's own policy may create script URLs.
+- **Zero third-party requests:** fonts are self-hosted, with no analytics, trackers or cookies. The 3D text engine runs on the main thread so no blob: workers are needed.
+- **Anti-clickjacking:** the page refuses to render inside another site's frame.
+- **Contact form:** input is cleaned and capped, then handed to the visitor's own mail app. Nothing is stored or sent to a server.
+- **Supply chain:**
+  - Actions are pinned to commit SHAs and run with least-privilege tokens.
+  - CodeQL (`security-extended`) runs on every push.
+  - Dependabot watches npm and the pinned actions.
+  - A high-severity advisory in shipped code blocks the deploy.
+  - Shipped dependencies currently audit clean: `npm audit --omit=dev` finds 0 vulnerabilities.
+- **Disclosure:** [`security.txt`](public/.well-known/security.txt) and [SECURITY.md](SECURITY.md).
 
 ## Night shift or day shift
 
@@ -119,7 +155,7 @@ In both views, every word is real, selectable text. Headings are in order, links
 
 ### Performance
 
-- **Downloads:** the main bundle is **~110 kB** gzipped. The 3D scene (three, fiber, drei, troika) is a separate **~263 kB** download that only 3D-view visitors fetch.
+- **Downloads:** the main bundle is **~125 kB** gzipped. The 3D scene (three, fiber, drei, troika) is a separate **~265 kB** download that only 3D-view visitors fetch.
 - **Rendering:** the scene renders on demand. It draws while the camera moves and stops when it rests. The one exception is the gate, where the status lamp pulses at about 15 fps while it's in shot.
 - **Measured** (desktop Chrome): scrolling the full route held 60 fps (median to p99 frame time 16.7–16.8 ms) with no long tasks.
 
@@ -168,9 +204,12 @@ npm run build && npm run stills && npm run build
 
 Every push to `main` deploys automatically. The workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
 
-1. installs with `npm ci`
-2. builds with `CI=true` (warnings fail the build)
-3. publishes `./build` to the `gh-pages` branch
+1. installs exact versions with `npm ci`
+2. audits the shipped dependencies (a high-severity advisory stops the deploy)
+3. builds with `CI=true` (warnings fail the build)
+4. publishes `./build` to the `gh-pages` branch
+
+The workflow's actions are pinned to commit SHAs, and its token can only write repository contents. A separate [CodeQL workflow](.github/workflows/codeql.yml) scans the code on every push.
 
 GitHub Pages serves that branch at **[jaypee-2003.github.io/jaypee](https://jaypee-2003.github.io/jaypee)**. You can also rerun it by hand from the Actions tab.
 

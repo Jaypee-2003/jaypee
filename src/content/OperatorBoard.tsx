@@ -111,8 +111,8 @@ export const OperatorBoard: React.FC = () => (
       <Title id="about-title">From the schema to the deploy</Title>
       <Summary>{person.summary}</Summary>
       <Body>
-        Architecture means multi-role authentication, RBAC and API optimization designed in from the start. Delivery
-        means Docker, AWS and CI/CD, so what gets built actually reaches production.
+        Security is part of the first schema: multi-role authentication, RBAC and an audit trail, never a patch. AI goes
+        in the same way, wired into the product's own data and permissions. Docker, AWS and CI/CD get it to production.
       </Body>
       <Body>
         Right now I'm freelancing with {experience.company} on {experience.client}, scaling a multi-module SaaS
@@ -122,17 +122,17 @@ export const OperatorBoard: React.FC = () => (
 
     <Scope>
       <div>
-        <Label as="h3">Architecture</Label>
+        <Label as="h3">Security</Label>
         <ul>
-          {person.architecture.map((item) => (
+          {person.security.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       </div>
       <div>
-        <Label as="h3">Delivery</Label>
+        <Label as="h3">AI</Label>
         <ul>
-          {person.delivery.map((item) => (
+          {person.ai.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>

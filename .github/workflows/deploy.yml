@@ -1,6 +1,11 @@
 # Builds the site on every push to main and publishes it to the gh-pages branch, which GitHub Pages
 # serves at https://jaypee-2003.github.io/jaypee. Can also be run by hand from the Actions tab.
 #
+# Supply-chain hardening:
+#   · every action is pinned to a full commit SHA (the tag is noted beside it); Dependabot keeps them current
+#   · the token gets no permissions by default; only the deploy job may write, and only repository contents
+#   · a high- or critical-severity advisory in any dependency the site ships stops the deploy
+#
 # The plain view's location photos (public/stills) are committed images, not built here: after changing
 # the 3D scene, re-render them locally with `npm run build && npm run stills` and commit the result.
 name: Deploy to GitHub Pages
@@ -10,8 +15,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 # A newer push supersedes a deploy that's still running
 concurrency:
@@ -21,22 +25,31 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 20
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
           cache: npm
 
+      # Exact versions from the lockfile, nothing resolved at build time
       - run: npm ci
+
+      # Only what ships to the browser; build tooling is audited by Dependabot instead
+      - name: Audit shipped dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       # CI=true makes warnings fail the build, the same check as locally
       - run: npm run build
         env:
           CI: true
 
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build

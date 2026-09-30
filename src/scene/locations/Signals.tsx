@@ -9,7 +9,7 @@ import { LampPoint } from '../daylight';
 // Skills as a signal gantry over the lane: one signal head per group, one lit lamp per skill, named
 // beside it. (The same list is in the DOM for assistive tech — see SkillsBoard.)
 
-const Z = -160;
+const Z = -194;
 const CENTER_X = 10.7;
 const SPACING = 2.55;
 const TOP = 8.1; // underside of the truss

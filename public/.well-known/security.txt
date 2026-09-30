@@ -1,0 +1,6 @@
+Contact: mailto:jaypeebehera@gmail.com
+Contact: https://github.com/Jaypee-2003/jaypee/security/advisories/new
+Expires: 2027-09-30T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://jaypee-2003.github.io/jaypee/.well-known/security.txt
+Policy: https://github.com/Jaypee-2003/jaypee/blob/main/SECURITY.md

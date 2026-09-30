@@ -9,6 +9,8 @@ import { GateSign } from '../content/GateSign';
 import { OperatorBoard } from '../content/OperatorBoard';
 import { CaseLightbox } from '../content/CaseLightbox';
 import { Manifest } from '../content/Manifest';
+import { AIBoard } from '../content/AIBoard';
+import { SecurityBoard } from '../content/SecurityBoard';
 import { SkillsBoard } from '../content/SkillsBoard';
 import { DispatchWindow, EducationPlaque, OrderSlip } from '../content/Dispatch';
 
@@ -237,6 +239,23 @@ const Project = styled('article', { shouldForwardProp: (prop) => prop !== 'flip'
 
 /* ───────────────────────── Skills & contact ───────────────────────── */
 
+/* ───────────────────────── AI & Security ───────────────────────── */
+
+// Two places in one chapter: each a wide photograph with its board standing over the lower edge
+const Part = styled.section`
+  scroll-margin-top: ${theme.layout.navHeight};
+
+  & + & {
+    margin-top: clamp(3.5rem, 8vw, 6rem);
+  }
+`;
+
+const OverPhoto = styled(Hold)`
+  margin: clamp(-9rem, -11vw, -2rem) auto 0;
+  max-width: 60rem;
+  z-index: 1;
+`;
+
 const Band = styled(Picture)`
   figcaption {
     max-width: ${theme.layout.max};
@@ -350,9 +369,43 @@ const DocumentSite: React.FC = () => {
 
       <Chapter as="div">
         <Wrap>
+          <ChapterHead n={3} label="AI & Security" />
+          <Part id="tower" data-stop="tower">
+            <Picture
+              id="tower"
+              ratio="21 / 9"
+              ratioSm="4 / 3"
+              focus="62% 45%"
+              captionTop
+              alt={`The terminal's operations tower ${night ? 'at night, its glazed control cab lit amber by screens' : 'by day, its glazed control cab above a concrete shaft'}, with a radar and an antenna mast on the roof.`}
+              caption="The ops tower · AI in production"
+            />
+            <OverPhoto>
+              <AIBoard />
+            </OverPhoto>
+          </Part>
+          <Part id="inspection" data-stop="inspection">
+            <Picture
+              id="inspection"
+              ratio="21 / 9"
+              ratioSm="4 / 3"
+              focus="50% 45%"
+              captionTop
+              alt={`A container scanner portal spanning the lane ${night ? 'at night, scan lights glowing down its legs' : 'by day'}, its beam lettered “Security inspection · every request checked”.`}
+              caption="The scanner portal · security checkpoint"
+            />
+            <OverPhoto>
+              <SecurityBoard />
+            </OverPhoto>
+          </Part>
+        </Wrap>
+      </Chapter>
+
+      <Chapter as="div">
+        <Wrap>
           {projects.map((project, i) => (
             <React.Fragment key={project.id}>
-              {i === 0 && <ChapterHead n={3} label="Projects" />}
+              {i === 0 && <ChapterHead n={4} label="Projects" />}
               <Project id={`file-${i + 1}`} data-stop={`file-${i + 1}`} flip={i % 2 === 1}>
                 <Picture
                   id={`file-${i + 1}` as StopId}
@@ -372,7 +425,7 @@ const DocumentSite: React.FC = () => {
 
       <Chapter id="signals" data-stop="signals">
         <Wrap>
-          <ChapterHead n={4} label="Skills" />
+          <ChapterHead n={5} label="Skills" />
         </Wrap>
         <Band
           id="signals"
@@ -393,7 +446,7 @@ const DocumentSite: React.FC = () => {
 
       <Chapter id="dispatch" data-stop="dispatch">
         <Wrap>
-          <ChapterHead n={5} label="Contact" />
+          <ChapterHead n={6} label="Contact" />
           <Picture
             id="dispatch"
             ratio="21 / 9"

@@ -2,7 +2,7 @@ import { projects } from '../data/profile';
 
 // The site is one route through the yard. Each stop is a place the camera comes to rest; the plain
 // document uses the same ids for its sections, so links, the nav and the URL work the same in both.
-export type StopId = 'gate' | 'notice' | 'bay' | `file-${number}` | 'signals' | 'dispatch';
+export type StopId = 'gate' | 'notice' | 'bay' | 'tower' | 'inspection' | `file-${number}` | 'signals' | 'dispatch';
 
 export interface Stop {
   id: StopId;
@@ -15,7 +15,9 @@ export const STOPS: Stop[] = [
   { id: 'gate', travel: 0, dwell: 0.55 },
   { id: 'notice', travel: 1.1, dwell: 0.7 },
   { id: 'bay', travel: 1.3, dwell: 0.8 },
-  ...projects.map((_, i) => ({ id: `file-${i + 1}` as StopId, travel: i === 0 ? 1.3 : 0.8, dwell: 0.7 })),
+  { id: 'tower', travel: 1.2, dwell: 0.8 },
+  { id: 'inspection', travel: 1.0, dwell: 0.8 },
+  ...projects.map((_, i) => ({ id: `file-${i + 1}` as StopId, travel: i === 0 ? 1.1 : 0.8, dwell: 0.7 })),
   { id: 'signals', travel: 1.2, dwell: 0.7 },
   { id: 'dispatch', travel: 1.2, dwell: 0.6 },
 ];
@@ -30,6 +32,7 @@ export const SECTIONS: NavSection[] = [
   { label: 'Home', route: '/', stop: 'gate' },
   { label: 'About', route: '/about', stop: 'notice' },
   { label: 'Experience', route: '/experience', stop: 'bay' },
+  { label: 'AI & Security', route: '/ai-security', stop: 'tower' },
   { label: 'Projects', route: '/projects', stop: 'file-1' },
   { label: 'Skills', route: '/skills', stop: 'signals' },
   { label: 'Contact', route: '/contact', stop: 'dispatch' },

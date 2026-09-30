@@ -2,6 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!--
+      Content Security Policy. GitHub Pages can't send response headers, so the policy is set here.
+        · scripts: only this site's own files — no inline script, no eval, no workers, no plugins
+        · Trusted Types: DOM injection sinks are locked; only webpack's policy may produce script URLs
+        · everything else: this site only (fonts are self-hosted), nothing may frame, post or connect elsewhere
+      Styles allow inline because the style library (Emotion) and the 3D sign renderer set styles at runtime;
+      no script can be injected through them.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'none'; child-src 'none'; frame-src 'none'; object-src 'none'; media-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types webpack"
+    />
+    <meta name="referrer" content="no-referrer" />
     <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="%PUBLIC_URL%/favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/logo192.png" />
@@ -9,26 +22,17 @@
     <meta name="theme-color" content="#0B121C" />
     <meta
       name="description"
-      content="Jayprakash Behera — Full Stack Developer available for freelance and contract work. SaaS platforms, backend systems and AI-powered applications."
+      content="Jayprakash Behera — full stack developer for AI-powered products and secure systems. Available for freelance and contract work."
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Display: Big Shoulders Display · Body: Archivo (the 3D scene loads the stencil cut from @fontsource) -->
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,400&family=Big+Shoulders+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Jaypee</title>
     <style>
       html { background: #0B121C; }
       html[data-theme='day'] { background: #ECE7DC; }
     </style>
-    <!-- Night or day, before first paint (src/site/timeOfDay.ts keeps it in sync afterwards) -->
-    <script>
-      try {
-        var t = new URLSearchParams(location.search).get('time') || localStorage.getItem('jpb:time');
-        if (t === 'day' || t === 'night') document.documentElement.setAttribute('data-theme', t);
-      } catch (e) {}
-    </script>
+    <!-- Before first paint: frame protection and night/day (no inline script: the CSP forbids it) -->
+    <script src="%PUBLIC_URL%/boot.js"></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

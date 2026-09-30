@@ -12,7 +12,7 @@ import { LampPoint } from '../daylight';
 // The project's name is painted along the top container; its manifest stands on a tally board in front.
 
 export const FILE_X = 20; // stack centre line
-export const fileZ = (i: number): number => -66 - 16 * i;
+export const fileZ = (i: number): number => -100 - 16 * i;
 
 // Each project's paint, in the three-colour system
 const PAINTS: PaintName[] = ['bone', 'ink', 'steel', 'copper', 'dark'];

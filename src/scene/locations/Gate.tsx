@@ -92,7 +92,7 @@ export const Gate: React.FC = () => (
       </Paint>
     </Container>
     <Container paint="bone" position={[-18, 6.475, C]}>
-      <IdMark code="FULL STACK · SAAS · APIS · AI" x={5.8} z={1.225} color={PAL.stencilDark} />
+      <IdMark code="FULL STACK · AI · SECURITY" x={5.8} z={1.225} color={PAL.stencilDark} />
     </Container>
 
     {/* The gate sign on two legs, the status lamp on its top edge */}

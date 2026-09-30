@@ -257,6 +257,22 @@ interface FormData {
   message: string;
 }
 
+// Input limits, and cleaning before anything is put into the mail hand-off: control characters (newlines
+// in a name or address included) are stripped, whitespace collapsed, lengths capped. The recipient is a
+// constant, so the form can only ever address its owner.
+const LIMITS = { name: 80, email: 254, message: 3000 };
+// Drops control characters (keeping tab and line feed, which paragraph text may use)
+const stripControl = (value: string): string =>
+  Array.from(value)
+    .filter((c) => {
+      const code = c.charCodeAt(0);
+      return code === 9 || code === 10 || (code >= 32 && code !== 127);
+    })
+    .join('');
+const oneLine = (value: string, max: number): string =>
+  stripControl(value.replace(/[\r\n\t]+/g, ' ')).replace(/\s{2,}/g, ' ').trim().slice(0, max);
+const paragraph = (value: string, max: number): string => stripControl(value).trim().slice(0, max);
+
 export const OrderSlip: React.FC = () => {
   const [form, setForm] = useState<FormData>({ name: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
@@ -265,8 +281,11 @@ export const OrderSlip: React.FC = () => {
   // The form keeps its contents so nothing is lost if no mail app opens.
   const submit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    const subject = `Project enquiry — ${form.name}`;
-    const body = `${form.message}\n\n— ${form.name}\n${form.email}`;
+    const name = oneLine(form.name, LIMITS.name);
+    const email = oneLine(form.email, LIMITS.email);
+    const message = paragraph(form.message, LIMITS.message);
+    const subject = `Project enquiry — ${name}`;
+    const body = `${message}\n\n— ${name}\n${email}`;
     window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setSent(true);
   };
@@ -284,11 +303,30 @@ export const OrderSlip: React.FC = () => {
       </SlipHead>
       <Field>
         <label htmlFor="order-name">Name</label>
-        <input id="order-name" name="name" autoComplete="name" placeholder="What should I call you?" value={form.name} onChange={change} required />
+        <input
+          id="order-name"
+          name="name"
+          autoComplete="name"
+          placeholder="What should I call you?"
+          value={form.name}
+          onChange={change}
+          maxLength={LIMITS.name}
+          required
+        />
       </Field>
       <Field>
         <label htmlFor="order-email">Email</label>
-        <input id="order-email" name="email" type="email" autoComplete="email" placeholder="you@company.com" value={form.email} onChange={change} required />
+        <input
+          id="order-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@company.com"
+          value={form.email}
+          onChange={change}
+          maxLength={LIMITS.email}
+          required
+        />
       </Field>
       <Field>
         <label htmlFor="order-brief">Brief</label>
@@ -298,6 +336,7 @@ export const OrderSlip: React.FC = () => {
           placeholder="What are you building, what's the timeline, and what's in the way?"
           value={form.message}
           onChange={change}
+          maxLength={LIMITS.message}
           required
         />
       </Field>

@@ -15,7 +15,7 @@ const { chromium } = require('playwright-core');
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'public', 'stills');
 const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const STOPS = ['gate', 'bay', 'file-1', 'file-2', 'file-3', 'file-4', 'file-5', 'signals', 'dispatch'];
+const STOPS = ['gate', 'bay', 'tower', 'inspection', 'file-1', 'file-2', 'file-3', 'file-4', 'file-5', 'signals', 'dispatch'];
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff': 'font/woff', '.woff2': 'font/woff2' };
 

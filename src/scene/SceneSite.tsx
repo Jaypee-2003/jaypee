@@ -16,6 +16,8 @@ import { ShadowRules } from './shadows';
 import { Gate } from './locations/Gate';
 import { Notice } from './locations/Notice';
 import { Bay } from './locations/Bay';
+import { Tower } from './locations/Tower';
+import { Inspection } from './locations/Inspection';
 import { Row } from './locations/Row';
 import { Signals } from './locations/Signals';
 import { Dispatch } from './locations/Dispatch';
@@ -113,6 +115,8 @@ const World: React.FC<{ still: StopId | null; onReady: () => void }> = ({ still,
       <Gate />
       <Notice />
       <Bay />
+      <Tower />
+      <Inspection />
       <Row />
       <Signals />
       <Dispatch />

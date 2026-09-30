@@ -1,5 +1,6 @@
 import React, { ComponentProps, useCallback, useMemo } from 'react';
 import { Text } from '@react-three/drei';
+import { configureTextBuilder } from 'troika-three-text';
 import { Mesh, MeshStandardMaterial } from 'three';
 import stencilFont from '@fontsource/big-shoulders-stencil-display/files/big-shoulders-stencil-display-latin-800-normal.woff';
 import labelFont from '@fontsource/archivo/files/archivo-latin-600-normal.woff';
@@ -7,6 +8,10 @@ import { PAL } from './palette';
 
 // Words that exist as paint in the yard: real geometry, lit by the scene's lamps, fogged with distance
 // and hidden by whatever stands in front of them. (Words people read closely are DOM placards instead.)
+
+// Lay out text on the main thread rather than in web workers built from blob: URLs, so the Content
+// Security Policy can refuse workers and blob: scripts outright. Must run before the first text renders.
+configureTextBuilder({ useWorker: false });
 
 const materials = new Map<string, MeshStandardMaterial>();
 const paintMaterial = (color: string, glow: boolean): MeshStandardMaterial => {

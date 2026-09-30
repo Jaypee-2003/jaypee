@@ -5,15 +5,75 @@ export const person = {
   name: 'Jayprakash Behera',
   firstName: 'Jayprakash',
   lastName: 'Behera',
-  role: 'Full Stack Developer',
+  role: 'Full Stack Developer · AI & Security',
   pitch:
-    'Full stack developer for SaaS platforms, backend systems and AI-powered products — taking them from architecture to production.',
+    'Full stack developer for AI-powered products and secure systems — taking them from architecture to production.',
   summary:
-    'I build scalable SaaS platforms, high-performance backend systems and AI-powered applications with React.js, Node.js, Python, Docker and AWS — and I own both the architecture and the delivery.',
+    'I build AI-powered applications, secure multi-role backends and scalable SaaS platforms with React.js, Node.js, Python, Docker and AWS — and I own both the architecture and the delivery.',
   coreStack: ['React.js', 'Node.js', 'Python', 'Docker', 'AWS'],
-  architecture: ['Multi-role authentication', 'RBAC', 'API optimization', 'MongoDB tuning for high concurrency'],
-  delivery: ['Docker & Docker Compose', 'AWS — EC2, S3, Lambda', 'CI/CD pipelines'],
+  security: ['JWT auth on every request', 'RBAC — least privilege by role', 'Activity logging & integrity checks', 'Multi-role workflows, designed in'],
+  ai: ['LLM features via OpenRouter', 'AI grounded in product data', 'Python · FastAPI · Node.js services'],
 };
+
+// AI and security, told only through shipped work (projects and experience below). Each practice names
+// the evidence behind it.
+export const expertise = {
+  ai: {
+    label: 'AI in production',
+    title: 'AI that ships inside the product',
+    lead: "Model-powered features built into real products: fed by the product's own data, running behind its sign-in, and fast enough that people actually use them.",
+    practices: [
+      {
+        title: 'Model-agnostic',
+        detail: "LLMs reached through OpenRouter's single API, so models can be swapped without rewriting the product.",
+      },
+      {
+        title: 'Grounded in real data',
+        detail: "Devanta reads a GitHub profile's public work before it generates a word.",
+      },
+      {
+        title: 'Behind the same locks',
+        detail: "EduExamine's assistant lives inside its JWT + RBAC platform, behind the same sign-in as everything else.",
+      },
+      {
+        title: 'Fast enough to matter',
+        detail: 'Devanta goes from a GitHub profile to a deployable portfolio in under 60 seconds.',
+      },
+    ],
+    shipped: [
+      { project: 'EduExamine', what: 'AI academic assistant — contextual support and chat', via: 'OpenRouter APIs' },
+      { project: 'Devanta', what: 'GitHub profile → deployable portfolio', via: 'Analysis + generation · < 60 s' },
+    ],
+    stack: ['Python', 'FastAPI', 'Node.js', 'OpenRouter LLM APIs'],
+  },
+  security: {
+    label: 'Security',
+    title: 'Designed in, not bolted on',
+    lead: 'Every system starts from who can do what. Identity, roles and an audit trail are part of the first schema, not a patch added later.',
+    practices: [
+      { title: 'Identity on every request', detail: 'JWT-authenticated REST APIs across every Dukaan Dost module.' },
+      {
+        title: 'Least privilege, by role',
+        detail: 'RBAC for multi-role workflows: students, faculty and admins each get only their own dashboard and permissions.',
+      },
+      {
+        title: 'Integrity you can prove',
+        detail: 'EduExamine logs activity and enforces fullscreen and tab-switch detection during live exams.',
+      },
+      { title: 'Contained delivery', detail: 'Services shipped as Docker containers on AWS: isolated and reproducible.' },
+    ],
+  },
+};
+
+// This site's own hardening, each item implemented in this repository (see SECURITY.md)
+export const siteSecurity = [
+  { title: 'Strict Content Security Policy', detail: 'Scripts only from this site. No inline code, no eval, no plugins.' },
+  { title: 'Trusted Types', detail: 'The DOM’s injection points are locked; only reviewed script URLs load.' },
+  { title: 'Zero third-party requests', detail: 'Fonts self-hosted. No analytics, no trackers, no cookies.' },
+  { title: 'Refuses to be framed', detail: 'Won’t render inside another site, so it can’t be used for clickjacking.' },
+  { title: 'Nothing leaves your browser', detail: 'The contact form hands off to your own mail app. Nothing is stored.' },
+  { title: 'Supply chain checked', detail: 'CI actions pinned to commits, dependencies watched, CodeQL on every push.' },
+];
 
 export const contact = {
   email: 'jaypeebehera@gmail.com',
