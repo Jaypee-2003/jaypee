@@ -25,6 +25,7 @@ This portfolio is a place, not a page. The whole site is **one continuous 3D sce
 
 - your name stencilled on steel
 - a notice board and a lightbox
+- an ops tower for the AI work, and a scanner portal for the security work
 - a row of container stacks with their manifests
 - a signal gantry
 - the dispatch office at the end of the quay
@@ -90,6 +91,7 @@ A portfolio that claims security should be able to show it. The site is static w
   - Dependabot watches npm and the pinned actions.
   - A high-severity advisory in shipped code blocks the deploy.
   - Shipped dependencies currently audit clean: `npm audit --omit=dev` finds 0 vulnerabilities.
+- **Build scripts too:** CodeQL flagged a path traversal in the photograph renderer's temporary local server. It was reproduced, fixed and re-tested: the server now listens on the local machine only and refuses any path outside the build folder.
 - **Disclosure:** [`security.txt`](public/.well-known/security.txt) and [SECURITY.md](SECURITY.md).
 
 ## Night shift or day shift
@@ -133,10 +135,12 @@ Three colours, each used for what it is in the yard. None of them are decoration
 
 | Layer | What it does |
 |-------|--------------|
+| **Layout** (`src/scene/layout.ts`) | Where everything stands is computed from the content. Each project gets a slot 16 m apart on the row, and everything past the row moves down by the row's length. The loading-bay gantry and the signal gantry size themselves to their modules and skill groups, and the camera steps back to take in a wider signal gantry. |
 | **Scroll rig** (`src/scene/rig.ts`, `CameraRig.tsx`) | Page scroll maps to a point on a Catmull-Rom camera path. Each stop has a rest zone where the camera holds still, travel between stops eases in and out, and the camera damps toward its target so it glides instead of jumping. It uses native scroll, so wheel, touch, keyboard and scrollbars all behave normally. |
 | **Signs** (`src/scene/Placard.tsx`, `src/content/*`) | drei `<Html transform occlude="blending">`: real DOM mapped onto a plane with CSS 3D. Geometry in front of a sign genuinely hides it, and it fades with distance like the fog. Each sign is portalled into a slot in route order, so reading and tab order follow the walk. |
 | **Paint** (`src/scene/Paint.tsx`) | Names and markings are real 3D text (troika SDF), lit by the scene's lamps and fogged with distance. |
 | **The yard** (`src/scene/Environment.tsx`, `locations/*`) | Instanced background stacks (one draw call), merged lamp poles and lane paint, wireframe cranes, the quay and a sodium glow on the horizon. |
+| **Time of day** (`src/scene/daylight.tsx`, `Sky.tsx`) | One daylight value eases between night and day. The sky shader, the sun or moon key light, the lamps and the wet patches all read it, so the whole yard changes together. |
 | **Plain view** (`src/document/DocumentSite.tsx`) | The same content as an ordinary scrolling page, laid out like a photo essay: a photograph of each place, with its signs set as readable text beside it. |
 
 ### Plain view and accessibility
@@ -164,22 +168,30 @@ In both views, every word is real, selectable text. Headings are in order, links
 ```
 src/
 ├── data/profile.ts        ← all portfolio content lives here (one source for both views; see CONTENT.md)
-├── content/               ← the signs: gate sign, notice board, lightbox, manifests, dispatch window, order slip
+├── content/               ← the signs: gate sign, notice board, lightbox, AI ops display, security checkpoint board,
+│                            manifests, skills list, dispatch window, order slip
 ├── scene/                 ← the 3D yard
 │   ├── SceneSite.tsx      ← canvas, scroll track, sign slots, error fallback
+│   ├── layout.ts          ← where things stand, computed from the content (the yard grows with it)
 │   ├── CameraRig.tsx      ← scroll → camera
 │   ├── rig.ts             ← camera path, stop poses, still-photo framing
 │   ├── Environment.tsx    ← ground, stacks, lamps, cranes, quay, horizon
-│   ├── locations/         ← gate, notice, bay, project row, signals, dispatch
+│   ├── Yardwork.tsx       ← barriers, cones, pallets, the reach stacker, road markings, wet patches
+│   ├── Sky.tsx · daylight.tsx · shadows.tsx · lights.tsx   ← sky, night/day, shadows, light beams, the city
+│   ├── locations/         ← gate, notice, bay, ops tower, scanner portal, project row, signals, dispatch
 │   └── Placard.tsx · Paint.tsx · props.tsx · palette.ts · textures.ts
 ├── document/              ← the plain view
-├── site/                  ← stops and routes, view mode, active-stop store, URL sync
+├── site/                  ← stops and routes, view mode, night/day, active-stop store, URL sync
 ├── components/Navbar.tsx
 └── styles/theme.ts        ← ink · bone · amber, type, layout
-src/scene/layout.ts        ← where things stand, computed from the content (the yard grows with it)
-scripts/check-content.js   ← validates profile.ts against each sign's size (runs before every build)
-scripts/render-stills.js   ← photographs every place for the plain view (runs on every deploy)
-public/stills/             ← a local copy of those photographs, used by this README
+scripts/
+├── check-content.js       ← validates profile.ts against each sign's size (runs before every build)
+└── render-stills.js       ← photographs every place for the plain view (runs on every deploy)
+public/
+├── stills/                ← a local copy of those photographs, used by this README
+├── boot.js                ← frame protection and theme before first paint (the CSP allows no inline script)
+└── .well-known/security.txt
+.github/                   ← deploy and CodeQL workflows, Dependabot
 ```
 
 ## Run it locally
@@ -209,7 +221,7 @@ Every push to `main` deploys automatically. The workflow in [`.github/workflows/
 1. installs exact versions with `npm ci`
 2. audits the shipped dependencies (a high-severity advisory stops the deploy)
 3. checks the content, then builds with `CI=true` (content that doesn't fit, or any warning, stops the deploy)
-4. photographs every place in the yard for the plain view, by night and by day, into the build (about 6 minutes)
+4. photographs every place in the yard for the plain view, by night and by day, plus the link-preview image, into the build (7–9 minutes; the runner has no GPU, so Chrome renders in software)
 5. publishes `./build` to the `gh-pages` branch
 
 The workflow's actions are pinned to commit SHAs, and its token can only write repository contents. A separate [CodeQL workflow](.github/workflows/codeql.yml) scans the code on every push.
